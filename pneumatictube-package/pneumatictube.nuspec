@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <metadata>
+    <id>pneumatictube</id>
+    <title>PneumaticTube</title>
+    <version>1.0.0.0</version>
+    <authors>E.Z. Hart</authors>
+    <owners>E.Z. Hart</owners>
+    <summary>This is an example App</summary>
+    <description>Command line Dropbox uploader for Windows</description>
+    <projectUrl>https://github.com/hartez/PneumaticTube</projectUrl>
+    <tags>cli commandline dropbox</tags>
+    <licenseUrl>https://github.com/hartez/PneumaticTube/blob/master/license.txt</licenseUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance> 
+    <iconUrl></iconUrl>
+  </metadata>
+</package>
