@@ -21,6 +21,13 @@ namespace PneumaticTube
                 return;
             }
 
+            if(options.Reset)
+            {
+                Settings.Default.USER_SECRET = String.Empty;
+                Settings.Default.USER_TOKEN = String.Empty;
+                Settings.Default.Save();
+            }
+
             var client = new DropNetClient(ConfigurationManager.AppSettings["API_KEY"],
                 ConfigurationManager.AppSettings["API_SECRET"]);
 

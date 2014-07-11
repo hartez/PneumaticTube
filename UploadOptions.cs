@@ -11,6 +11,10 @@ namespace PneumaticTube
         [Option('p', "path", Required = true, HelpText = "The destination path in Dropbox")]
         public string DropboxPath { get; set; }
 
+        [Option('r', "reset", Required = false, HelpText = "Force PneumaticTube to re-authorize with Dropbox")]
+        public bool Reset { get; set; }
+
+
         public string GetUsage()
         {
             var help = new HelpText
