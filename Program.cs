@@ -34,6 +34,7 @@ namespace PneumaticTube
                 var url = client.GetTokenAndBuildUrl();
                 Process.Start(url);
 
+                // Wait f
                 Console.ReadLine();
 
                 var accessToken = client.GetAccessToken();
