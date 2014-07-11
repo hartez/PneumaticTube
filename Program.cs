@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Configuration;
 using System.Diagnostics;
 using System.IO;
 using CommandLine;
-using DropNet;
 using DropNet.Models;
 using PneumaticTube.Properties;
 
@@ -15,21 +13,20 @@ namespace PneumaticTube
         {
             var options = new UploadOptions();
 
-            if(!Parser.Default.ParseArguments(args, options))
+            if (!Parser.Default.ParseArguments(args, options))
             {
                 Console.WriteLine(options.GetUsage());
                 return;
             }
 
-            if(options.Reset)
+            if (options.Reset)
             {
                 Settings.Default.USER_SECRET = String.Empty;
                 Settings.Default.USER_TOKEN = String.Empty;
                 Settings.Default.Save();
             }
 
-            var client = new DropNetClient(ConfigurationManager.AppSettings["API_KEY"],
-                ConfigurationManager.AppSettings["API_SECRET"]);
+            var client = DropNetClientFactory.CreateDropNetClient();
 
             // See if we have a token already
             if(String.IsNullOrEmpty(Settings.Default.USER_TOKEN) || String.IsNullOrEmpty(Settings.Default.USER_SECRET))

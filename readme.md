@@ -12,7 +12,7 @@ Uploads the specified file to the specified path in Dropbox.
 
 ### Authorization
 
-The first time you run pneumatictube it will open a browser and ask you to authorize it for your Dropbox account.
+The first time you run PneumaticTube it will open a browser and ask you to authorize it for your Dropbox account.
 
 If you ever want to deauthorize it (for example, to authorize it for a different account), you can run it with the `-r` (reset) option. 
 
