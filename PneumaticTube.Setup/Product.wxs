@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+	<Product Id="*" Name="PneumaticTube" Language="1033" Version="!(bind.FileVersion.fil2761AADA77C4DFA2E33A7CBE464BFE90)" Manufacturer="Traceur LLC" UpgradeCode="770590d1-f354-4324-a737-6b07ec33fe69">
+		<Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+
+		<MajorUpgrade DowngradeErrorMessage="A newer version of PneumaticTube is already installed." />
+		<MediaTemplate EmbedCab="yes" />
+
+		<Feature Id="ProductFeature" Title="PneumaticTube" Level="1">
+			<ComponentGroupRef Id="ProductComponents" />
+		</Feature>
+	</Product>
+
+  <Fragment>
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFilesFolder">
+        <Directory Id="Traceur" Name="Traceur">
+          <Directory Id="PneumaticTube" Name="PneumaticTube" />
+        </Directory>
+      </Directory>
+    </Directory>
+  </Fragment>
+</Wix>
