@@ -12,6 +12,6 @@
     <tags>cli commandline dropbox</tags>
     <licenseUrl>https://github.com/hartez/PneumaticTube/blob/master/license.txt</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance> 
-    <iconUrl></iconUrl>
+    <iconUrl>https://raw.githubusercontent.com/hartez/PneumaticTube/master/PneumaticTube.Setup/cmdline.ico</iconUrl>
   </metadata>
 </package>
