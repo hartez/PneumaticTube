@@ -6,7 +6,7 @@
 		<MajorUpgrade DowngradeErrorMessage="A newer version of PneumaticTube is already installed." />
 		<MediaTemplate EmbedCab="yes" />
 
-    <Icon Id="cmdline.ico" SourceFile="cmdline.ico"/>
+    <Icon Id="cmdline.ico"  SourceFile="$(var.PneumaticTube.ProjectDir)/cmdline.ico"/>
     <Property Id="ARPPRODUCTICON" Value="cmdline.ico" />
 
     <Feature Id="ProductFeature" Title="PneumaticTube" Level="1">

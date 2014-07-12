@@ -5,6 +5,9 @@
     </Fragment>
     <Fragment>
         <ComponentGroup Id="ProductComponents">
+            <Component Id="cmp7B7CA8F027E1F977785F6A2D74C55736" Directory="PneumaticTube" Guid="*">
+                <File Id="fil72A63E8115E6BAE12845A39F5D8669F7" KeyPath="yes" Source="$(var.PneumaticTube.TargetDir)\cmdline.ico" />
+            </Component>
             <Component Id="cmpB46DCD8F000528AB049D2D7B36090807" Directory="PneumaticTube" Guid="*">
                 <File Id="filE93BBFD8C1B12824FC0D85704D7D8E1C" KeyPath="yes" Source="$(var.PneumaticTube.TargetDir)\CommandLine.dll" />
             </Component>
@@ -18,6 +21,9 @@
             <Component Id="cmp67EDA2B6F8B46F9CBCD5B22D2B2B2F95" Directory="PneumaticTube" Guid="*">
                 <File Id="fil7131842B0D2975A5BB5062C4F1230C6B" KeyPath="yes" Source="$(var.PneumaticTube.TargetDir)\PneumaticTube.exe.config" />
             </Component>
+            
+            
+            
             
             <Component Id="cmp8499FC0EAA5E0B5DA83BDECBFB62E6BD" Directory="PneumaticTube" Guid="*">
                 <File Id="filC4E1F031011EAB0F26818627E5B55397" KeyPath="yes" Source="$(var.PneumaticTube.TargetDir)\RestSharp.dll" />

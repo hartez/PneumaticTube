@@ -37,7 +37,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="cmdline.ico" />
     <Content Include="Filter.xslt" />
   </ItemGroup>
   <Import Project="$(WixTargetsPath)" />
