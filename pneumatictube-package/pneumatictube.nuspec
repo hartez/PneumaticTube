@@ -6,8 +6,8 @@
     <version>1.0.0.0</version>
     <authors>E.Z. Hart</authors>
     <owners>E.Z. Hart</owners>
-    <summary>This is an example App</summary>
-    <description>Command line Dropbox uploader for Windows</description>
+    <summary>Command line Dropbox uploader for Windows</summary>
+    <description>This application provides command line uploading to Dropbox in Windows. For usage info, see the readme at https://github.com/hartez/PneumaticTube</description>
     <projectUrl>https://github.com/hartez/PneumaticTube</projectUrl>
     <tags>cli commandline dropbox</tags>
     <licenseUrl>https://github.com/hartez/PneumaticTube/blob/master/license.txt</licenseUrl>
