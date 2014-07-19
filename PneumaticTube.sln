@@ -12,8 +12,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{4C9956
 		.nuget\NuGet.targets = .nuget\NuGet.targets
 	EndProjectSection
 EndProject
-Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "PneumaticTube.Setup", "PneumaticTube.Setup\PneumaticTube.Setup.wixproj", "{5011CC9F-EFBC-4866-BB7A-6B0073810290}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -34,15 +32,6 @@ Global
 		{C59E7143-AC6C-4CC8-9A7F-16B9846FF929}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{C59E7143-AC6C-4CC8-9A7F-16B9846FF929}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{C59E7143-AC6C-4CC8-9A7F-16B9846FF929}.Release|x86.ActiveCfg = Release|Any CPU
-		{5011CC9F-EFBC-4866-BB7A-6B0073810290}.Debug|Any CPU.ActiveCfg = Debug|x86
-		{5011CC9F-EFBC-4866-BB7A-6B0073810290}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
-		{5011CC9F-EFBC-4866-BB7A-6B0073810290}.Debug|x86.ActiveCfg = Debug|x86
-		{5011CC9F-EFBC-4866-BB7A-6B0073810290}.Debug|x86.Build.0 = Debug|x86
-		{5011CC9F-EFBC-4866-BB7A-6B0073810290}.Release|Any CPU.ActiveCfg = Release|x86
-		{5011CC9F-EFBC-4866-BB7A-6B0073810290}.Release|Mixed Platforms.ActiveCfg = Release|x86
-		{5011CC9F-EFBC-4866-BB7A-6B0073810290}.Release|Mixed Platforms.Build.0 = Release|x86
-		{5011CC9F-EFBC-4866-BB7A-6B0073810290}.Release|x86.ActiveCfg = Release|x86
-		{5011CC9F-EFBC-4866-BB7A-6B0073810290}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
