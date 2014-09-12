@@ -11,7 +11,7 @@
     <description>This application provides command line uploading to Dropbox in Windows. For usage info, see the readme at https://github.com/hartez/PneumaticTube</description>
     <projectUrl>https://github.com/hartez/PneumaticTube</projectUrl>
     <tags>cli commandline dropbox</tags>
-	<copyright>Copyright 2014 Traceur LLC and E.Z. Hart</copyright>
+	<copyright>Copyright 2014 CodeWise LLC and E.Z. Hart</copyright>
     <licenseUrl>https://github.com/hartez/PneumaticTube/blob/master/license.txt</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance> 
     <iconUrl>https://raw.githubusercontent.com/hartez/PneumaticTube/master/PneumaticTube.Setup/cmdline.ico</iconUrl>
