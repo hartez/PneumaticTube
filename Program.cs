@@ -9,14 +9,22 @@ namespace PneumaticTube
 {
     internal class Program
     {
-        private static void Main(string[] args)
+        private enum ExitCode : int
+        {
+            Success = 0,
+            FileNotFound = 2,
+            BadArguments = 160,
+            UnknownError = int.MaxValue
+        }
+
+        private static int Main(string[] args)
         {
             var options = new UploadOptions();
 
             if (!Parser.Default.ParseArguments(args, options))
             {
                 Console.WriteLine(options.GetUsage());
-                return;
+                return (int)ExitCode.BadArguments;
             }
 
             if (options.Reset)
@@ -38,7 +46,7 @@ namespace PneumaticTube
                 var url = client.GetTokenAndBuildUrl();
                 Process.Start(url);
 
-                // Wait f
+                // Wait for the user to hit Enter
                 Console.ReadLine();
 
                 var accessToken = client.GetAccessToken();
@@ -61,7 +69,7 @@ namespace PneumaticTube
             if(!File.Exists(source))
             {
                 Console.WriteLine("Source file does not exist.");
-                return;
+                return (int)ExitCode.FileNotFound;
             }
 
             Console.WriteLine("Uploading {0} to {1}", filename, options.DropboxPath);
@@ -77,12 +85,14 @@ namespace PneumaticTube
                 if(String.IsNullOrEmpty(uploaded.Name))
                 {
                     Console.WriteLine("An error occurred and your file was not uploaded. Your target path may be invalid.");
-                    return;
+                    return (int)ExitCode.UnknownError;
                 }
 
                 Console.WriteLine("Whoosh...");
                 Console.WriteLine("Uploaded {0} to {1}; Revision {2}", uploaded.Name, uploaded.Path, uploaded.Revision);
             }
+
+            return (int) ExitCode.Success;
         }
     }
 }
