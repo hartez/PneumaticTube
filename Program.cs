@@ -72,6 +72,9 @@ namespace PneumaticTube
                 return (int)ExitCode.FileNotFound;
             }
 
+            // Fix up Dropbox path (fix Windows-style slashes)
+            options.DropboxPath = options.DropboxPath.Replace(@"\", "/");
+
             Console.WriteLine("Uploading {0} to {1}", filename, options.DropboxPath);
 
             using(var fs = new FileStream(source, FileMode.Open, FileAccess.Read))
