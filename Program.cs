@@ -70,6 +70,16 @@ namespace PneumaticTube
             {
                 var uploaded = client.UploadFile(options.DropboxPath, filename, fs);
 
+                // Sadly, the synchronous version of UploadFile in DropNet doesn't give us 
+                // any error data, the meta data returned is simply empty when the upload
+                // doesn't work. It might be worth moving to the async version for
+                // better error handling (and progress info)
+                if(String.IsNullOrEmpty(uploaded.Name))
+                {
+                    Console.WriteLine("An error occurred and your file was not uploaded. Your target path may be invalid.");
+                    return;
+                }
+
                 Console.WriteLine("Whoosh...");
                 Console.WriteLine("Uploaded {0} to {1}; Revision {2}", uploaded.Name, uploaded.Path, uploaded.Revision);
             }
