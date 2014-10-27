@@ -1,5 +1,5 @@
 $packageName = 'PneumaticTube.portable' 
-$url = 'https://github.com/hartez/PneumaticTube/releases/download/1.0.0/PneumaticTube.zip' 
+$url = 'https://github.com/hartez/PneumaticTube/releases/download/1.0.2/PneumaticTube.zip' 
 
 try { 
   $binRoot = Get-BinRoot
