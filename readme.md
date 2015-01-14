@@ -10,6 +10,12 @@
 
 Uploads the specified file to the specified path in Dropbox.
 
+For example:
+
+`pneumatictube -f .\report.txt -p /docs` 
+
+would upload `report.txt` to the `docs` folder in the Dropbox account.
+
 ### Authorization
 
 The first time you run PneumaticTube it will open a browser and ask you to authorize it for your Dropbox account.
