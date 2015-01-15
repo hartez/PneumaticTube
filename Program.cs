@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Net;
 using CommandLine;
-using DropNet.Models;
+using DropNetRT.Exceptions;
+using DropNetRT.Models;
 using PneumaticTube.Properties;
 
 namespace PneumaticTube
@@ -13,7 +15,9 @@ namespace PneumaticTube
         {
             Success = 0,
             FileNotFound = 2,
+            AccessDenied = 5,
             BadArguments = 160,
+            FileExists = 80,
             UnknownError = int.MaxValue
         }
 
@@ -42,14 +46,16 @@ namespace PneumaticTube
                 Console.WriteLine(
                     "You'll need to authorize this account with PneumaticTube; a browser window will now open asking you to log into dropbox and allow the app. When you've done that, hit Enter.");
 
+                var requestToken = client.GetRequestToken().Result;
+
                 // Pop open the authorization page in the default browser
-                var url = client.GetTokenAndBuildUrl();
+                var url = client.BuildAuthorizeUrl(requestToken);
                 Process.Start(url);
 
                 // Wait for the user to hit Enter
                 Console.ReadLine();
 
-                var accessToken = client.GetAccessToken();
+                var accessToken = client.GetAccessToken().Result;
 
                 // Save the token and secret 
                 Settings.Default.USER_SECRET = accessToken.Secret;
@@ -77,25 +83,59 @@ namespace PneumaticTube
 
             Console.WriteLine("Uploading {0} to {1}", filename, options.DropboxPath);
 
+            var exitCode = ExitCode.UnknownError;
+
             using(var fs = new FileStream(source, FileMode.Open, FileAccess.Read))
             {
-                var uploaded = client.UploadFile(options.DropboxPath, filename, fs);
-
-                // Sadly, the synchronous version of UploadFile in DropNet doesn't give us 
-                // any error data, the meta data returned is simply empty when the upload
-                // doesn't work. It might be worth moving to the async version for
-                // better error handling (and progress info)
-                if(String.IsNullOrEmpty(uploaded.Name))
+                try
                 {
-                    Console.WriteLine("An error occurred and your file was not uploaded. Your target path may be invalid.");
-                    return (int)ExitCode.UnknownError;
-                }
+                    var uploaded = client.Upload(options.DropboxPath, filename, fs).Result;
 
-                Console.WriteLine("Whoosh...");
-                Console.WriteLine("Uploaded {0} to {1}; Revision {2}", uploaded.Name, uploaded.Path, uploaded.Revision);
+                    Console.WriteLine("Whoosh...");
+                    Console.WriteLine("Uploaded {0} to {1}; Revision {2}", uploaded.Name, uploaded.Path,
+                        uploaded.Revision);
+
+                    exitCode = ExitCode.Success;
+                }
+                catch(AggregateException ex)
+                {
+                    foreach(var exception in ex.InnerExceptions)
+                    {
+                        if(exception is DropboxException)
+                        {
+                            exitCode = HandleException(exception as DropboxException);
+                        }
+                    }
+                }
+                catch(Exception ex)
+                {
+                    Console.WriteLine("An error occurred and your file was not uploaded.");
+                    Console.WriteLine(ex);
+                }
             }
 
-            return (int) ExitCode.Success;
+            Console.ReadLine();
+
+            return (int)exitCode;
+        }
+
+        private static ExitCode HandleException(DropboxException ex)
+        {
+            Console.WriteLine("An error occurred and your file was not uploaded.");
+            Console.WriteLine(ex.StatusCode);
+            Console.WriteLine(ex.Response);
+
+            if (ex.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                return ExitCode.AccessDenied;
+            }
+            else if(ex.StatusCode == HttpStatusCode.Conflict)
+            {
+                // Shouldn't happen with the DropNet defaults (overwrite = true), but just in case 
+                return ExitCode.FileExists;
+            }
+
+            return ExitCode.UnknownError;
         }
     }
 }
