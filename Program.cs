@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Net;
+using System.Threading;
 using CommandLine;
 using DropNetRT.Exceptions;
 using DropNetRT.Models;
@@ -9,6 +10,43 @@ using PneumaticTube.Properties;
 
 namespace PneumaticTube
 {
+    internal class BytesProgressDisplay : IProgress<long>
+    {
+        private readonly long _fileSize;
+
+        public BytesProgressDisplay(long fileSize)
+        {
+            _fileSize = fileSize;
+        }
+
+        public void Report(long value)
+        {
+            Console.WriteLine("{0} of {1} uploaded.", value, _fileSize);
+        }
+    }
+
+    internal class PercentProgressDisplay : IProgress<long>
+    {
+        private readonly long _fileSize;
+
+        public PercentProgressDisplay(long fileSize)
+        {
+            _fileSize = fileSize;
+        }
+
+        public void Report(long value)
+        {
+            long percent = 0;
+
+            if(_fileSize > 0)
+            {
+                percent = 100 * value / _fileSize;
+            }
+
+            Console.WriteLine("{0}% complete.", percent);
+        }
+    }
+
     internal class Program
     {
         private enum ExitCode : int
@@ -23,6 +61,10 @@ namespace PneumaticTube
 
         private static int Main(string[] args)
         {
+            // TODO Display cancellation key message (which button to hit)
+            // TODO Do work in separate thread so you can listen for cancellation keypress  http://msdn.microsoft.com/en-us/library/ee191552(v=vs.110).aspx
+            // TODO Handle cancellation (display message, exit with appropriate error code)
+
             var options = new UploadOptions();
 
             if (!Parser.Default.ParseArguments(args, options))
@@ -89,7 +131,12 @@ namespace PneumaticTube
             {
                 try
                 {
-                    var uploaded = client.Upload(options.DropboxPath, filename, fs).Result;
+                    var cts = new CancellationTokenSource();
+                    var progress = new PercentProgressDisplay(fs.Length);
+
+                    // TODO Check for force chunked option or file size >= 150MB, otherwise use regular upload
+
+                    var uploaded = client.UploadChunked(options.DropboxPath, filename, fs, cts.Token, progress).Result;
 
                     Console.WriteLine("Whoosh...");
                     Console.WriteLine("Uploaded {0} to {1}; Revision {2}", uploaded.Name, uploaded.Path,
