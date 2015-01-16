@@ -14,8 +14,11 @@ namespace PneumaticTube
         [Option('r', "reset", Required = false, HelpText = "Force PneumaticTube to re-authorize with Dropbox")]
         public bool Reset { get; set; }
 
-        // TODO Option for forcing chunked upload
-        // TODO Option for specifying bytes progress instead of percentage
+        [Option('b', "bytes", Required = false, HelpText = "Display progress in bytes instead of percentage when using chunked uploading")]
+        public bool Bytes { get; set; }
+
+        [Option('c', "chunked", Required = false, HelpText = "Force chunked uploading")]
+        public bool Chunked { get; set; }
 
         public string GetUsage()
         {
