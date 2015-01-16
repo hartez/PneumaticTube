@@ -138,8 +138,6 @@ namespace PneumaticTube
                     ? (IProgress<long>) new BytesProgressDisplay(fs.Length)
                     : new PercentProgressDisplay(fs.Length);
 
-                // TODO Check for force chunked option or file size >= 150MB, otherwise use regular upload
-
                 if(!options.Chunked && fs.Length >= 150 * 1024 * 1024)
                 {
                     Console.WriteLine("File is larger than 150MB, using chunked uploading.");
