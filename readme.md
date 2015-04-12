@@ -10,6 +10,12 @@
 
 Uploads the specified file to the specified path in Dropbox.
 
+For example:
+
+`pneumatictube -f .\report.txt -p /docs` 
+
+would upload `report.txt` to the `docs` folder in the Dropbox account.
+
 ### Options
 
 * `-f` <file> (required) The location of the file to upload
@@ -17,6 +23,7 @@ Uploads the specified file to the specified path in Dropbox.
 * `-r` <reset> Force re-authorization with Dropbox
 * `-c` <chunked> Force chunked uploading
 * `-b` <bytes> Display progress in bytes instead of percentage when using chunked uploading
+
 
 ### Authorization
 
@@ -29,6 +36,10 @@ If you ever want to deauthorize it (for example, to authorize it for a different
 Dropbox requires chunked uploading (uploading the file in many small parts, instead of one big blob) for files above 150 MB. Pneumatictube will automatically used chunked uploading for files which require it. For smaller files, you can specify the `-c` option to force chunked uploading. This is useful if you want a progress indicator during the upload. 
 
 If you specify the `-c` option, you can also use the `-b` option to specify that you want your progress updates in bytes instead of percentage (the default).
+
+### Installation
+
+If you're not into building the project from source, you can download the latest release [as a .zip](https://github.com/hartez/PneumaticTube/releases/download/1.0.2/PneumaticTube.zip). Or, if you're a [chocolatey](https://chocolatey.org/) user, it's also available as a [package](https://chocolatey.org/packages/pneumatictube.portable). Just run `choco install pneumatictube.portable` and you should be good to go.
 
 ### Notes
 
