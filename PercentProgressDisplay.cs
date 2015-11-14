@@ -43,14 +43,14 @@ namespace PneumaticTube
             if(_consoleCanReportProgress)
             {
                 Console.SetCursorPosition(0, Console.CursorTop);
-                Console.Write("{0}% complete.", percent);
+                Console.Write($"{percent}% complete.");
             }
 
             if(percent >= 100)
             {
                 if(!_consoleCanReportProgress)
                 {
-                    Console.Write("{0}% complete.", percent);
+                    Console.Write($"{percent}% complete.");
                 }
 
                 Console.Write("\n");

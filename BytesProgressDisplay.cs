@@ -36,14 +36,14 @@ namespace PneumaticTube
             if(_consoleCanReportProgress)
             {
                 Console.SetCursorPosition(0, Console.CursorTop);
-                Console.Write("{0} of {1} uploaded.", value, _fileSize);
+                Console.Write($"{value} of {_fileSize} uploaded.");
             }
 
             if(value >= _fileSize)
             {
                 if(!_consoleCanReportProgress)
                 {
-                    Console.Write("{0} of {1} uploaded.", value, _fileSize);
+                    Console.Write($"{value} of {_fileSize} uploaded.");
                 }
 
                 Console.Write("\n");
