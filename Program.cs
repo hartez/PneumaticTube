@@ -14,38 +14,27 @@ namespace PneumaticTube
 {
     internal class Program
     {
-        private enum ExitCode : int
-        {
-            Success = 0,
-            FileNotFound = 2,
-            AccessDenied = 5,
-            BadArguments = 160,
-            FileExists = 80,
-            Canceled = 1223,
-            UnknownError = int.MaxValue
-        }
-
         private static int Main(string[] args)
         {
             var options = new UploadOptions();
 
-            if (!Parser.Default.ParseArguments(args, options))
+            if(!Parser.Default.ParseArguments(args, options))
             {
                 Console.WriteLine(options.GetUsage());
                 return (int)ExitCode.BadArguments;
             }
 
-            if (options.Reset)
+            if(options.Reset)
             {
-                Settings.Default.USER_SECRET = String.Empty;
-                Settings.Default.USER_TOKEN = String.Empty;
+                Settings.Default.USER_SECRET = string.Empty;
+                Settings.Default.USER_TOKEN = string.Empty;
                 Settings.Default.Save();
             }
 
             var client = DropNetClientFactory.CreateDropNetClient();
 
             // See if we have a token already
-            if (String.IsNullOrEmpty(Settings.Default.USER_TOKEN) || String.IsNullOrEmpty(Settings.Default.USER_SECRET))
+            if(string.IsNullOrEmpty(Settings.Default.USER_TOKEN) || string.IsNullOrEmpty(Settings.Default.USER_SECRET))
             {
                 Console.WriteLine(
                     "You'll need to authorize this account with PneumaticTube; a browser window will now open asking you to log into Dropbox and allow the app. When you've done that, hit Enter.");
@@ -76,7 +65,7 @@ namespace PneumaticTube
             var source = Path.GetFullPath(options.LocalPath);
             var filename = Path.GetFileName(source);
 
-            if (!File.Exists(source))
+            if(!File.Exists(source))
             {
                 Console.WriteLine("Source file does not exist.");
                 return (int)ExitCode.FileNotFound;
@@ -86,7 +75,7 @@ namespace PneumaticTube
             options.DropboxPath = options.DropboxPath.Replace(@"\", "/");
 
             Output($"Uploading {filename} to {options.DropboxPath}", options);
-			Console.Title = $"Uploading {filename} to {options.DropboxPath}";
+            Console.Title = $"Uploading {filename} to {options.DropboxPath}";
             Output("Ctrl-C to cancel", options);
 
             var exitCode = ExitCode.UnknownError;
@@ -106,7 +95,7 @@ namespace PneumaticTube
                 task.Wait(cts.Token);
                 exitCode = ExitCode.Success;
             }
-            catch (OperationCanceledException)
+            catch(OperationCanceledException)
             {
                 Output("Upload canceled", options);
 
@@ -131,48 +120,50 @@ namespace PneumaticTube
             return (int)exitCode;
         }
 
-	    private static void Output(string message, UploadOptions options)
-	    {
-		    if (options.Quiet)
-		    {
-			    return;
-		    }
-
-			Console.WriteLine(message);
-	    }
-
-	    private static IProgress<long> ConfigureProgressHandler(UploadOptions options, long fileSize)
-	    {
-		    if (options.NoProgress || options.Quiet)
-		    {
-				return new NoProgressDisplay(fileSize, options.Quiet);
-		    }
-
-		    if (options.Bytes)
-		    {
-				return new BytesProgressDisplay(fileSize);
-		    }
-
-			return new PercentProgressDisplay(fileSize);
-	    }
-
-	    private static void Upload(string source, string filename, UploadOptions options, DropNetClient client, CancellationToken cancellationToken)
+        private static void Output(string message, UploadOptions options)
         {
-            using (var fs = new FileStream(source, FileMode.Open, FileAccess.Read))
+            if(options.Quiet)
+            {
+                return;
+            }
+
+            Console.WriteLine(message);
+        }
+
+        private static IProgress<long> ConfigureProgressHandler(UploadOptions options, long fileSize)
+        {
+            if(options.NoProgress || options.Quiet)
+            {
+                return new NoProgressDisplay(fileSize, options.Quiet);
+            }
+
+            if(options.Bytes)
+            {
+                return new BytesProgressDisplay(fileSize);
+            }
+
+            return new PercentProgressDisplay(fileSize);
+        }
+
+        private static void Upload(string source, string filename, UploadOptions options, DropNetClient client,
+            CancellationToken cancellationToken)
+        {
+            using(var fs = new FileStream(source, FileMode.Open, FileAccess.Read))
             {
                 Metadata uploaded;
 
                 if(options.Chunked)
                 {
-					var progress = ConfigureProgressHandler(options, fs.Length);
+                    var progress = ConfigureProgressHandler(options, fs.Length);
 
-					if(!options.Chunked && fs.Length >= 150 * 1024 * 1024)
-					{
-						Output("File is larger than 150MB, using chunked uploading.", options);
-						options.Chunked = true;
-					}
+                    if(!options.Chunked && fs.Length >= 150*1024*1024)
+                    {
+                        Output("File is larger than 150MB, using chunked uploading.", options);
+                        options.Chunked = true;
+                    }
 
-                    uploaded = client.UploadChunked(options.DropboxPath, filename, fs, cancellationToken, progress).Result;
+                    uploaded =
+                        client.UploadChunked(options.DropboxPath, filename, fs, cancellationToken, progress).Result;
                 }
                 else
                 {
@@ -190,16 +181,27 @@ namespace PneumaticTube
             Console.WriteLine(ex.StatusCode);
             Console.WriteLine(ex.Response);
 
-            switch (ex.StatusCode)
+            switch(ex.StatusCode)
             {
-	            case HttpStatusCode.Unauthorized:
-		            return ExitCode.AccessDenied;
-	            case HttpStatusCode.Conflict:
-		            // Shouldn't happen with the DropNet defaults (overwrite = true), but just in case 
-		            return ExitCode.FileExists;
+                case HttpStatusCode.Unauthorized:
+                    return ExitCode.AccessDenied;
+                case HttpStatusCode.Conflict:
+                    // Shouldn't happen with the DropNet defaults (overwrite = true), but just in case 
+                    return ExitCode.FileExists;
             }
 
-	        return ExitCode.UnknownError;
+            return ExitCode.UnknownError;
+        }
+
+        private enum ExitCode
+        {
+            Success = 0,
+            FileNotFound = 2,
+            AccessDenied = 5,
+            BadArguments = 160,
+            FileExists = 80,
+            Canceled = 1223,
+            UnknownError = int.MaxValue
         }
     }
 }
