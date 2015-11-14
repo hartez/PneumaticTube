@@ -85,8 +85,9 @@ namespace PneumaticTube
             // Fix up Dropbox path (fix Windows-style slashes)
             options.DropboxPath = options.DropboxPath.Replace(@"\", "/");
 
-            Console.WriteLine("Uploading {0} to {1}", filename, options.DropboxPath);
-            Console.WriteLine("Ctrl-C to cancel");
+            Output($"Uploading {filename} to {options.DropboxPath}", options);
+			Console.Title = $"Uploading {filename} to {options.DropboxPath}";
+            Output("Ctrl-C to cancel", options);
 
             var exitCode = ExitCode.UnknownError;
 
@@ -107,7 +108,7 @@ namespace PneumaticTube
             }
             catch (OperationCanceledException)
             {
-                Console.WriteLine("Upload canceled");
+                Output("Upload canceled", options);
 
                 exitCode = ExitCode.Canceled;
             }
@@ -130,24 +131,47 @@ namespace PneumaticTube
             return (int)exitCode;
         }
 
-        private static void Upload(string source, string filename, UploadOptions options, DropNetClient client, CancellationToken cancellationToken)
+	    private static void Output(string message, UploadOptions options)
+	    {
+		    if (options.Quiet)
+		    {
+			    return;
+		    }
+
+			Console.WriteLine(message);
+	    }
+
+	    private static IProgress<long> ConfigureProgressHandler(UploadOptions options, long fileSize)
+	    {
+		    if (options.NoProgress || options.Quiet)
+		    {
+				return new NoProgressDisplay(fileSize, options.Quiet);
+		    }
+
+		    if (options.Bytes)
+		    {
+				return new BytesProgressDisplay(fileSize);
+		    }
+
+			return new PercentProgressDisplay(fileSize);
+	    }
+
+	    private static void Upload(string source, string filename, UploadOptions options, DropNetClient client, CancellationToken cancellationToken)
         {
             using (var fs = new FileStream(source, FileMode.Open, FileAccess.Read))
             {
-                var progress = options.Bytes 
-                    ? (IProgress<long>) new BytesProgressDisplay(fs.Length)
-                    : new PercentProgressDisplay(fs.Length);
-
-                if(!options.Chunked && fs.Length >= 150 * 1024 * 1024)
-                {
-                    Console.WriteLine("File is larger than 150MB, using chunked uploading.");
-                    options.Chunked = true;
-                }
-
                 Metadata uploaded;
 
                 if(options.Chunked)
                 {
+					var progress = ConfigureProgressHandler(options, fs.Length);
+
+					if(!options.Chunked && fs.Length >= 150 * 1024 * 1024)
+					{
+						Output("File is larger than 150MB, using chunked uploading.", options);
+						options.Chunked = true;
+					}
+
                     uploaded = client.UploadChunked(options.DropboxPath, filename, fs, cancellationToken, progress).Result;
                 }
                 else
@@ -155,9 +179,8 @@ namespace PneumaticTube
                     uploaded = client.Upload(options.DropboxPath, filename, fs, cancellationToken).Result;
                 }
 
-                Console.WriteLine("Whoosh...");
-                Console.WriteLine("Uploaded {0} to {1}; Revision {2}", uploaded.Name, uploaded.Path,
-                    uploaded.Revision);
+                Output("Whoosh...", options);
+                Output($"Uploaded {uploaded.Name} to {uploaded.Path}; Revision {uploaded.Revision}", options);
             }
         }
 
@@ -167,17 +190,16 @@ namespace PneumaticTube
             Console.WriteLine(ex.StatusCode);
             Console.WriteLine(ex.Response);
 
-            if (ex.StatusCode == HttpStatusCode.Unauthorized)
+            switch (ex.StatusCode)
             {
-                return ExitCode.AccessDenied;
-            }
-            else if (ex.StatusCode == HttpStatusCode.Conflict)
-            {
-                // Shouldn't happen with the DropNet defaults (overwrite = true), but just in case 
-                return ExitCode.FileExists;
+	            case HttpStatusCode.Unauthorized:
+		            return ExitCode.AccessDenied;
+	            case HttpStatusCode.Conflict:
+		            // Shouldn't happen with the DropNet defaults (overwrite = true), but just in case 
+		            return ExitCode.FileExists;
             }
 
-            return ExitCode.UnknownError;
+	        return ExitCode.UnknownError;
         }
     }
 }

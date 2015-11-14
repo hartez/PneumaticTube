@@ -20,6 +20,12 @@ namespace PneumaticTube
         [Option('c', "chunked", Required = false, HelpText = "Force chunked uploading")]
         public bool Chunked { get; set; }
 
+		[Option('q', "quiet", Required = false, HelpText = "Suppress all output")]
+        public bool Quiet { get; set; }
+
+		[Option('n', "noprogress", Required = false, HelpText = "Suppress progress output when using chunked uploading")]
+        public bool NoProgress { get; set; }
+
         public string GetUsage()
         {
             var help = new HelpText
