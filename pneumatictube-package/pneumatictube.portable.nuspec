@@ -4,7 +4,7 @@
   <metadata>
     <id>pneumatictube.portable</id>
     <title>PneumaticTube (Portable)</title>
-    <version>1.1.0.0</version>
+    <version>1.2.0.0</version>
     <authors>E.Z. Hart</authors>
     <owners>E.Z. Hart</owners>
     <summary>Command line Dropbox uploader for Windows</summary>
@@ -15,7 +15,12 @@
     <licenseUrl>https://github.com/hartez/PneumaticTube/blob/master/license.txt</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance> 
     <iconUrl>https://raw.githubusercontent.com/hartez/PneumaticTube/master/PneumaticTube.Setup/cmdline.ico</iconUrl>
-	<releaseNotes>Initial Release</releaseNotes>
+	<releaseNotes>
+	Fix for https://github.com/hartez/PneumaticTube/issues/14
+	Fix for https://github.com/hartez/PneumaticTube/issues/12
+	Added quiet option to suppress console output
+	Added noprogress option to suppress progress reporting
+	</releaseNotes>
   </metadata>
   <files>
     <file src="tools\**" target="tools" />
