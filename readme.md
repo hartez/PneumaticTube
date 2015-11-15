@@ -23,7 +23,8 @@ would upload `report.txt` to the `docs` folder in the Dropbox account.
 * `-r` <reset> Force re-authorization with Dropbox
 * `-c` <chunked> Force chunked uploading
 * `-b` <bytes> Display progress in bytes instead of percentage when using chunked uploading
-
+* `-q` <quiet> Suppress all output (except errors)
+* `-n` <noprogress> Suppress progress reporting during chunked uploading
 
 ### Authorization
 
@@ -39,7 +40,7 @@ If you specify the `-c` option, you can also use the `-b` option to specify that
 
 ### Installation
 
-If you're not into building the project from source, you can download the latest release [as a .zip](https://github.com/hartez/PneumaticTube/releases/download/1.0.2/PneumaticTube.zip). Or, if you're a [chocolatey](https://chocolatey.org/) user, it's also available as a [package](https://chocolatey.org/packages/pneumatictube.portable). Just run `choco install pneumatictube.portable` and you should be good to go.
+If you're not into building the project from source, you can download the [latest release](https://github.com/hartez/PneumaticTube/releases) as a `.zip`. Or, if you're a [chocolatey](https://chocolatey.org/) user, it's also available as a [package](https://chocolatey.org/packages/pneumatictube.portable). Just run `choco install pneumatictube.portable` and you should be good to go.
 
 ### Notes
 
