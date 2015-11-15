@@ -16,10 +16,14 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance> 
     <iconUrl>https://raw.githubusercontent.com/hartez/PneumaticTube/master/PneumaticTube.Setup/cmdline.ico</iconUrl>
 	<releaseNotes>
+	Version 1.2:
 	Fix for https://github.com/hartez/PneumaticTube/issues/14
 	Fix for https://github.com/hartez/PneumaticTube/issues/12
 	Added quiet option to suppress console output
 	Added noprogress option to suppress progress reporting
+	Added folder uploading
+	Version 1.1:
+	Added chunked uploading for large files
 	</releaseNotes>
   </metadata>
   <files>
