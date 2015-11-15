@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
@@ -14,6 +15,8 @@ namespace PneumaticTube
 {
     internal class Program
     {
+        static bool ShowCancelHelp = true;
+
         private static int Main(string[] args)
         {
             var options = new UploadOptions();
@@ -63,20 +66,34 @@ namespace PneumaticTube
             });
 
             var source = Path.GetFullPath(options.LocalPath);
-            var filename = Path.GetFileName(source);
 
-            if(!File.Exists(source))
+            if(!File.Exists(source) && !Directory.Exists(source))
             {
-                Console.WriteLine("Source file does not exist.");
+                Console.WriteLine("Source does not exist.");
                 return (int)ExitCode.FileNotFound;
             }
 
             // Fix up Dropbox path (fix Windows-style slashes)
             options.DropboxPath = options.DropboxPath.Replace(@"\", "/");
 
-            Output($"Uploading {filename} to {options.DropboxPath}", options);
-            Console.Title = $"Uploading {filename} to {options.DropboxPath}";
-            Output("Ctrl-C to cancel", options);
+            string[] files;
+
+            // Determine whether source is a file or directory
+            var attr = File.GetAttributes(source);
+            if(attr.HasFlag(FileAttributes.Directory))
+            {
+                // TODO see if we like what this looks like for directories
+                Output($"Uploading folder \"{source}\" to {options.DropboxPath}", options);
+                Output("Ctrl-C to cancel", options);
+                ShowCancelHelp = false;
+
+                // TODO Figure out what, if anything, we want to do about subdirectories
+                files = Directory.GetFiles(source);
+            }
+            else
+            {
+                files = new[] {source};
+            }       
 
             var exitCode = ExitCode.UnknownError;
 
@@ -88,7 +105,7 @@ namespace PneumaticTube
                 cts.Cancel();
             };
 
-            var task = Task.Run(() => Upload(source, filename, options, client, cts.Token), cts.Token);
+            var task = Task.Run(() => Upload(files, options, client, cts.Token), cts.Token);
 
             try
             {
@@ -120,6 +137,56 @@ namespace PneumaticTube
             return (int)exitCode;
         }
 
+        private static async Task Upload(IEnumerable<string> paths, UploadOptions options, DropNetClient client,
+            CancellationToken cancellationToken)
+        {
+            foreach(var path in paths)
+            {
+                var source = Path.GetFullPath(path);
+                var filename = Path.GetFileName(source);
+
+                await Upload(source, filename, options, client, cancellationToken);
+            }
+        }
+
+        private static async Task Upload(string source, string filename, UploadOptions options, DropNetClient client,
+            CancellationToken cancellationToken)
+        {
+            Output($"Uploading {filename} to {options.DropboxPath}", options);
+            Console.Title = $"Uploading {filename} to {options.DropboxPath}";
+
+            if(ShowCancelHelp)
+            {
+                Output("Ctrl-C to cancel", options);
+                ShowCancelHelp = false;
+            }
+
+            using(var fs = new FileStream(source, FileMode.Open, FileAccess.Read))
+            {
+                Metadata uploaded;
+
+                if(options.Chunked)
+                {
+                    var progress = ConfigureProgressHandler(options, fs.Length);
+
+                    if(!options.Chunked && fs.Length >= 150*1024*1024)
+                    {
+                        Output("File is larger than 150MB, using chunked uploading.", options);
+                        options.Chunked = true;
+                    }
+
+                    uploaded = await client.UploadChunked(options.DropboxPath, filename, fs, cancellationToken, progress);
+                }
+                else
+                {
+                    uploaded = await client.Upload(options.DropboxPath, filename, fs, cancellationToken);
+                }
+
+                Output("Whoosh...", options);
+                Output($"Uploaded {uploaded.Name} to {uploaded.Path}; Revision {uploaded.Revision}", options);
+            }
+        }
+
         private static void Output(string message, UploadOptions options)
         {
             if(options.Quiet)
@@ -143,36 +210,6 @@ namespace PneumaticTube
             }
 
             return new PercentProgressDisplay(fileSize);
-        }
-
-        private static void Upload(string source, string filename, UploadOptions options, DropNetClient client,
-            CancellationToken cancellationToken)
-        {
-            using(var fs = new FileStream(source, FileMode.Open, FileAccess.Read))
-            {
-                Metadata uploaded;
-
-                if(options.Chunked)
-                {
-                    var progress = ConfigureProgressHandler(options, fs.Length);
-
-                    if(!options.Chunked && fs.Length >= 150*1024*1024)
-                    {
-                        Output("File is larger than 150MB, using chunked uploading.", options);
-                        options.Chunked = true;
-                    }
-
-                    uploaded =
-                        client.UploadChunked(options.DropboxPath, filename, fs, cancellationToken, progress).Result;
-                }
-                else
-                {
-                    uploaded = client.Upload(options.DropboxPath, filename, fs, cancellationToken).Result;
-                }
-
-                Output("Whoosh...", options);
-                Output($"Uploaded {uploaded.Name} to {uploaded.Path}; Revision {uploaded.Revision}", options);
-            }
         }
 
         private static ExitCode HandleException(DropboxException ex)
