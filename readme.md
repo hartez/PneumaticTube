@@ -8,7 +8,7 @@
 
 `pneumatictube -f <file> -p <path>`
 
-Uploads the specified file to the specified path in Dropbox.
+Uploads the specified file to the specified path in Dropbox. The `-f` option can also point to a folder, in which case each file in the folder will be uploaded to Dropbox. Currently only the files in specified folder are uploaded - child folders are ignored.
 
 For example:
 
@@ -36,7 +36,7 @@ If you ever want to deauthorize it (for example, to authorize it for a different
 
 Dropbox requires chunked uploading (uploading the file in many small parts, instead of one big blob) for files above 150 MB. Pneumatictube will automatically use chunked uploading for files which require it. For smaller files, you can specify the `-c` option to force chunked uploading. This is useful if you want a progress indicator during the upload. 
 
-If you specify the `-c` option, you can also use the `-b` option to specify that you want your progress updates in bytes instead of percentage (the default).
+If you specify the `-c` option, you can also use the `-b` option to specify that you want your progress updates in bytes instead of percentage (the default), or `-n` to suppress progress reporting. 
 
 ### Installation
 
