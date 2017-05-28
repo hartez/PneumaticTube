@@ -6,9 +6,8 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using CommandLine;
-using DropNetRT;
-using DropNetRT.Exceptions;
-using DropNetRT.Models;
+using Dropbox.Api;
+using Dropbox.Api.Files;
 using PneumaticTube.Properties;
 
 namespace PneumaticTube
@@ -33,37 +32,6 @@ namespace PneumaticTube
                 Settings.Default.USER_TOKEN = string.Empty;
                 Settings.Default.Save();
             }
-
-            var client = DropNetClientFactory.CreateDropNetClient();
-
-            // See if we have a token already
-            if(string.IsNullOrEmpty(Settings.Default.USER_TOKEN) || string.IsNullOrEmpty(Settings.Default.USER_SECRET))
-            {
-                Console.WriteLine(
-                    "You'll need to authorize this account with PneumaticTube; a browser window will now open asking you to log into Dropbox and allow the app. When you've done that, hit Enter.");
-
-                var requestToken = client.GetRequestToken().Result;
-
-                // Pop open the authorization page in the default browser
-                var url = client.BuildAuthorizeUrl(requestToken);
-                Process.Start(url);
-
-                // Wait for the user to hit Enter
-                Console.ReadLine();
-
-                var accessToken = client.GetAccessToken().Result;
-
-                // Save the token and secret 
-                Settings.Default.USER_SECRET = accessToken.Secret;
-                Settings.Default.USER_TOKEN = accessToken.Token;
-                Settings.Default.Save();
-            }
-
-            client.SetUserToken(new UserLogin
-            {
-                Token = Settings.Default.USER_TOKEN,
-                Secret = Settings.Default.USER_SECRET
-            });
 
             var source = Path.GetFullPath(options.LocalPath);
 
@@ -105,11 +73,11 @@ namespace PneumaticTube
                 cts.Cancel();
             };
 
-            var task = Task.Run(() => Upload(files, options, client, cts.Token), cts.Token);
-
             try
             {
-                task.Wait(cts.Token);
+				var client = DropboxClientFactory.CreateDropboxClient().Result;
+				var task = Task.Run(() => Upload(files, options, client, cts.Token), cts.Token);
+				task.Wait(cts.Token);
                 exitCode = ExitCode.Success;
             }
             catch(OperationCanceledException)
@@ -125,6 +93,13 @@ namespace PneumaticTube
                     if(exception is DropboxException)
                     {
                         exitCode = HandleException(exception as DropboxException);
+	                    Console.ReadLine();
+                    }
+                    else
+                    {
+	                    Console.WriteLine(ex.Message);
+						Console.WriteLine(ex);
+						Console.ReadLine();
                     }
                 }
             }
@@ -137,7 +112,7 @@ namespace PneumaticTube
             return (int)exitCode;
         }
 
-        private static async Task Upload(IEnumerable<string> paths, UploadOptions options, DropNetClient client,
+        private static async Task Upload(IEnumerable<string> paths, UploadOptions options, DropboxClient client,
             CancellationToken cancellationToken)
         {
             foreach(var path in paths)
@@ -149,7 +124,7 @@ namespace PneumaticTube
             }
         }
 
-        private static async Task Upload(string source, string filename, UploadOptions options, DropNetClient client,
+        private static async Task Upload(string source, string filename, UploadOptions options, DropboxClient client,
             CancellationToken cancellationToken)
         {
             Output($"Uploading {filename} to {options.DropboxPath}", options);
@@ -165,29 +140,35 @@ namespace PneumaticTube
             {
                 Metadata uploaded;
 
-                if(options.Chunked)
-                {
-                    var progress = ConfigureProgressHandler(options, fs.Length);
+				// TODO hartez 2017/05/28 14:56:46 Create an extension method for chunked	
+				//if (options.Chunked)
+    //            {
+    //                var progress = ConfigureProgressHandler(options, fs.Length);
 
-                    if(!options.Chunked && fs.Length >= 150*1024*1024)
-                    {
-                        Output("File is larger than 150MB, using chunked uploading.", options);
-                        options.Chunked = true;
-                    }
+    //                if(!options.Chunked && fs.Length >= 150*1024*1024)
+    //                {
+    //                    Output("File is larger than 150MB, using chunked uploading.", options);
+    //                    options.Chunked = true;
+    //                }
 
-                    uploaded = await client.UploadChunked(options.DropboxPath, filename, fs, cancellationToken, progress);
-                }
-                else
-                {
-                    uploaded = await client.Upload(options.DropboxPath, filename, fs, cancellationToken);
-                }
+	                
+    //                //uploaded = await client.UploadChunked(options.DropboxPath, filename, fs, cancellationToken, progress);
+    //            }
+                //else
+                //{
+					
+                    uploaded = await client.Upload(options.DropboxPath, filename, fs);
+                //}
 
                 Output("Whoosh...", options);
-                Output($"Uploaded {uploaded.Name} to {uploaded.Path}; Revision {uploaded.Revision}", options);
+                Output($"Uploaded {uploaded.Name} to {uploaded.PathDisplay}; Revision {uploaded.AsFile.Rev}", options);
             }
         }
 
-        private static void Output(string message, UploadOptions options)
+
+		
+
+		private static void Output(string message, UploadOptions options)
         {
             if(options.Quiet)
             {
@@ -215,17 +196,23 @@ namespace PneumaticTube
         private static ExitCode HandleException(DropboxException ex)
         {
             Console.WriteLine("An error occurred and your file was not uploaded.");
-            Console.WriteLine(ex.StatusCode);
-            Console.WriteLine(ex.Response);
+			
+			Console.WriteLine(ex.ToString());
 
-            switch(ex.StatusCode)
-            {
-                case HttpStatusCode.Unauthorized:
-                    return ExitCode.AccessDenied;
-                case HttpStatusCode.Conflict:
-                    // Shouldn't happen with the DropNet defaults (overwrite = true), but just in case 
-                    return ExitCode.FileExists;
-            }
+	        // TODO hartez 2017/05/28 14:54:05 See if there's an innerexception we can use to get the info DropNet gave us
+			// Look at the DropboxException source, you can check more specific types
+
+            //Console.WriteLine(ex.StatusCode);
+            //Console.WriteLine(ex.Response);
+
+            //switch(ex.StatusCode)
+            //{
+            //    case HttpStatusCode.Unauthorized:
+            //        return ExitCode.AccessDenied;
+            //    case HttpStatusCode.Conflict:
+            //        // Shouldn't happen with the DropNet defaults (overwrite = true), but just in case 
+            //        return ExitCode.FileExists;
+            //}
 
             return ExitCode.UnknownError;
         }
@@ -241,4 +228,20 @@ namespace PneumaticTube
             UnknownError = int.MaxValue
         }
     }
+
+	internal static class DropboxClientExtensions
+	{
+		public static async Task<FileMetadata> Upload(this DropboxClient client, string folder, string fileName, Stream fs)
+		{
+			if (!folder.StartsWith("/"))
+			{
+				folder = $"/{folder}";
+			}
+
+			// TODO hartez 2017/05/28 16:27:05 String interpolation	
+			Console.WriteLine(folder);
+			Console.WriteLine(fileName);
+			return await client.Files.UploadAsync(folder + "/" + fileName, WriteMode.Overwrite.Instance, body: fs);
+		}
+	}
 }
