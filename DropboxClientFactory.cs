@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
-using System.Net.Mime;
 using System.Reflection;
-using System.Threading;
 using System.Threading.Tasks;
 using Dropbox.Api;
 using PneumaticTube.Properties;
@@ -12,6 +10,13 @@ namespace PneumaticTube
 {
     internal static class DropboxClientFactory
     {
+		internal static void ResetAuthentication()
+		{
+			Settings.Default.USER_SECRET = string.Empty;
+			Settings.Default.USER_TOKEN = string.Empty;
+			Settings.Default.Save();
+		}
+
 		public static async Task<DropboxClient> CreateDropboxClient()
         {
             var assembly = Assembly.GetExecutingAssembly();
@@ -46,7 +51,7 @@ namespace PneumaticTube
 		    var url = DropboxOAuth2Helper.GetAuthorizeUri(OAuthResponseType.Code, key, (Uri) null, oauth2State);
 		    Process.Start(url.ToString());
 
-		    // Wait for the user to hit Enter
+		    // Wait for the user to enter the key
 		    var token = Console.ReadLine();
 
 			var response = await DropboxOAuth2Helper.ProcessCodeFlowAsync(token, key, secret);

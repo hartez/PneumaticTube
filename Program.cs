@@ -28,9 +28,7 @@ namespace PneumaticTube
 
             if(options.Reset)
             {
-                Settings.Default.USER_SECRET = string.Empty;
-                Settings.Default.USER_TOKEN = string.Empty;
-                Settings.Default.Save();
+				DropboxClientFactory.ResetAuthentication();
             }
 
             var source = Path.GetFullPath(options.LocalPath);
@@ -109,7 +107,7 @@ namespace PneumaticTube
             return (int)exitCode;
         }
 
-        private static async Task Upload(IEnumerable<string> paths, UploadOptions options, DropboxClient client,
+	    private static async Task Upload(IEnumerable<string> paths, UploadOptions options, DropboxClient client,
             CancellationToken cancellationToken)
         {
             foreach(var path in paths)
@@ -137,25 +135,23 @@ namespace PneumaticTube
             {
                 Metadata uploaded;
 
-				// TODO hartez 2017/05/28 14:56:46 Create an extension method for chunked	
-				//if (options.Chunked)
-    //            {
-    //                var progress = ConfigureProgressHandler(options, fs.Length);
+				if (options.Chunked)
+				{
+					var progress = ConfigureProgressHandler(options, fs.Length);
 
-    //                if(!options.Chunked && fs.Length >= 150*1024*1024)
-    //                {
-    //                    Output("File is larger than 150MB, using chunked uploading.", options);
-    //                    options.Chunked = true;
-    //                }
+					if (!options.Chunked && fs.Length >= 150 * 1024 * 1024)
+					{
+						Output("File is larger than 150MB, using chunked uploading.", options);
+						options.Chunked = true;
+					}
 
-	                
-    //                //uploaded = await client.UploadChunked(options.DropboxPath, filename, fs, cancellationToken, progress);
-    //            }
-                //else
-                //{
+					uploaded = await client.UploadChunked(options.DropboxPath, filename, fs, cancellationToken, progress);
+				}
+				else
+                {
 					
                     uploaded = await client.Upload(options.DropboxPath, filename, fs);
-                //}
+                }
 
                 Output("Whoosh...", options);
                 Output($"Uploaded {uploaded.Name} to {uploaded.PathDisplay}; Revision {uploaded.AsFile.Rev}", options);
