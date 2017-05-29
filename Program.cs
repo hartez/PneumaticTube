@@ -145,6 +145,8 @@ namespace PneumaticTube
 						options.Chunked = true;
 					}
 
+					// TODO hartez 2017/05/28 20:29:05 Figure out cancellation	
+
 					uploaded = await client.UploadChunked(options.DropboxPath, filename, fs, cancellationToken, progress);
 				}
 				else

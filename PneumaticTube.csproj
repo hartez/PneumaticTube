@@ -76,7 +76,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BytesProgressDisplay.cs" />
+    <Compile Include="DropboxClientExtensions.cs" />
     <Compile Include="DropboxClientFactory.cs" />
+    <Compile Include="DropboxExceptionExtensions.cs" />
+    <Compile Include="ExitCode.cs" />
     <Compile Include="NoProgressDisplay.cs" />
     <Compile Include="PercentProgressDisplay.cs" />
     <Compile Include="Program.cs" />

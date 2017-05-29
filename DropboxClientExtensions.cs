@@ -34,6 +34,8 @@ namespace PneumaticTube
 
 			for (var idx = 0; idx < numChunks; idx++)
 			{
+				//if(cancellationToken.)
+
 				var byteRead = fs.Read(buffer, 0, chunkSize);
 
 				using (MemoryStream memStream = new MemoryStream(buffer, 0, byteRead))
