@@ -92,14 +92,11 @@ namespace PneumaticTube
                 {
                     if(exception is DropboxException)
                     {
-                        exitCode = HandleException(exception as DropboxException);
-	                    Console.ReadLine();
+                        exitCode = HandleDropboxException(exception as DropboxException);
                     }
                     else
                     {
-	                    Console.WriteLine(ex.Message);
-						Console.WriteLine(ex);
-						Console.ReadLine();
+	                    exitCode = HandleGenericError(ex);
                     }
                 }
             }
@@ -165,9 +162,6 @@ namespace PneumaticTube
             }
         }
 
-
-		
-
 		private static void Output(string message, UploadOptions options)
         {
             if(options.Quiet)
@@ -193,55 +187,29 @@ namespace PneumaticTube
             return new PercentProgressDisplay(fileSize);
         }
 
-        private static ExitCode HandleException(DropboxException ex)
+        private static ExitCode HandleDropboxException(DropboxException ex)
         {
             Console.WriteLine("An error occurred and your file was not uploaded.");
-			
-			Console.WriteLine(ex.ToString());
 
-	        // TODO hartez 2017/05/28 14:54:05 See if there's an innerexception we can use to get the info DropNet gave us
-			// Look at the DropboxException source, you can check more specific types
+            var exitCode = ex.HandleAuthException() 
+				?? ex.HandleAccessException()
+				?? ex.HandleRateLimitException()
+				?? ex.HandleBadInputException()
+				?? ex.HandleHttpException()
+				?? ExitCode.UnknownError;
 
-            //Console.WriteLine(ex.StatusCode);
-            //Console.WriteLine(ex.Response);
-
-            //switch(ex.StatusCode)
-            //{
-            //    case HttpStatusCode.Unauthorized:
-            //        return ExitCode.AccessDenied;
-            //    case HttpStatusCode.Conflict:
-            //        // Shouldn't happen with the DropNet defaults (overwrite = true), but just in case 
-            //        return ExitCode.FileExists;
-            //}
-
-            return ExitCode.UnknownError;
+	        if (exitCode == ExitCode.UnknownError)
+	        {
+				Console.WriteLine(ex.Message);
+	        }
+	        
+	        return exitCode;
         }
 
-        private enum ExitCode
-        {
-            Success = 0,
-            FileNotFound = 2,
-            AccessDenied = 5,
-            BadArguments = 160,
-            FileExists = 80,
-            Canceled = 1223,
-            UnknownError = int.MaxValue
-        }
+	    private static ExitCode HandleGenericError(Exception ex)
+	    {
+			Console.WriteLine(ex.Message);
+			return ExitCode.UnknownError;
+	    }
     }
-
-	internal static class DropboxClientExtensions
-	{
-		public static async Task<FileMetadata> Upload(this DropboxClient client, string folder, string fileName, Stream fs)
-		{
-			if (!folder.StartsWith("/"))
-			{
-				folder = $"/{folder}";
-			}
-
-			// TODO hartez 2017/05/28 16:27:05 String interpolation	
-			Console.WriteLine(folder);
-			Console.WriteLine(fileName);
-			return await client.Files.UploadAsync(folder + "/" + fileName, WriteMode.Overwrite.Instance, body: fs);
-		}
-	}
 }

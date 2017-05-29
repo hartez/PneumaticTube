@@ -51,8 +51,7 @@ namespace PneumaticTube
 
 			var response = await DropboxOAuth2Helper.ProcessCodeFlowAsync(token, key, secret);
 
-			// Save the token and secret 
-			//Settings.Default.USER_SECRET = accessToken.Secret;
+			// Save the token 
 			Settings.Default.USER_TOKEN = response.AccessToken;
 		    Settings.Default.Save();
 
