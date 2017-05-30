@@ -135,15 +135,15 @@ namespace PneumaticTube
             {
                 Metadata uploaded;
 
+				if (!options.Chunked && fs.Length >= 150 * 1024 * 1024)
+				{
+					Output("File is larger than 150MB, using chunked uploading.", options);
+					options.Chunked = true;
+				}
+
 				if (options.Chunked)
 				{
 					var progress = ConfigureProgressHandler(options, fs.Length);
-
-					if (!options.Chunked && fs.Length >= 150 * 1024 * 1024)
-					{
-						Output("File is larger than 150MB, using chunked uploading.", options);
-						options.Chunked = true;
-					}
 
 					// TODO hartez 2017/05/28 20:29:05 Figure out cancellation	
 
@@ -151,7 +151,6 @@ namespace PneumaticTube
 				}
 				else
                 {
-					
                     uploaded = await client.Upload(options.DropboxPath, filename, fs);
                 }
 
