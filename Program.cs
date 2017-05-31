@@ -15,7 +15,7 @@ namespace PneumaticTube
 
         private static int Main(string[] args)
         {
-            var options = new UploadOptions();
+	        var options = new UploadOptions();
 
             if(!Parser.Default.ParseArguments(args, options))
             {
@@ -23,7 +23,7 @@ namespace PneumaticTube
                 return (int)ExitCode.BadArguments;
             }
 
-            if(options.Reset)
+			if (options.Reset)
             {
 				DropboxClientFactory.ResetAuthentication();
             }
@@ -103,6 +103,8 @@ namespace PneumaticTube
 
             return (int)exitCode;
         }
+
+	 
 
 	    private static async Task Upload(IEnumerable<string> paths, UploadOptions options, DropboxClient client,
             CancellationToken cancellationToken)
