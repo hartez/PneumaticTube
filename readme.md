@@ -44,7 +44,7 @@ If you're not into building the project from source, you can download the [lates
 
 ### Notes
 
-This is built on the excellent [DropNetRT](http://dropnet.github.io/dropnetrt.html) library and on [Command Line Parser](https://github.com/gsscoder/commandline). I basically just needed an easy way for a TeamCity server to push artifacts out to a Dropbox folder, and I didn't like all the awkward "run Dropbox as a service" hacks out there. 
+This is built on the [.NET SDK for the Dropbox API v2](https://github.com/dropbox/dropbox-sdk-dotnet) and on [Command Line Parser](https://github.com/gsscoder/commandline). I basically just needed an easy way for a TeamCity server to push artifacts out to a Dropbox folder, and I didn't like all the awkward "run Dropbox as a service" hacks out there. 
 
 -----
 
