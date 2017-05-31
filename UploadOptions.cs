@@ -5,13 +5,27 @@ namespace PneumaticTube
 {
     internal class UploadOptions
     {
-        [Option('f', "file", Required = true, HelpText = "The location of the file to upload")]
+	    private string _dropboxPath;
+
+	    [Option('f', "file", Required = true, HelpText = "The location of the file to upload")]
         public string LocalPath { get; set; }
 
-        [Option('p', "path", Required = true, HelpText = "The destination path in Dropbox")]
-        public string DropboxPath { get; set; }
+	    [Option('p', "path", Required = true, HelpText = "The destination path in Dropbox")]
+	    public string DropboxPath
+	    {
+		    get { return _dropboxPath; }
+		    set
+		    {
+				if (!value.StartsWith("/"))
+				{
+					value = $"/{value}";
+				}
 
-        [Option('r', "reset", Required = false, HelpText = "Force PneumaticTube to re-authorize with Dropbox")]
+				_dropboxPath = value;
+		    }
+	    }
+
+	    [Option('r', "reset", Required = false, HelpText = "Force PneumaticTube to re-authorize with Dropbox")]
         public bool Reset { get; set; }
 
         [Option('b', "bytes", Required = false,

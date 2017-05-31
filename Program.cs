@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using CommandLine;
 using Dropbox.Api;
 using Dropbox.Api.Files;
-using PneumaticTube.Properties;
 
 namespace PneumaticTube
 {
@@ -104,6 +101,8 @@ namespace PneumaticTube
                 Console.WriteLine(ex);
             }
 
+	        Console.ReadLine();
+
             return (int)exitCode;
         }
 
@@ -135,18 +134,15 @@ namespace PneumaticTube
             {
                 Metadata uploaded;
 
-				if (!options.Chunked && fs.Length >= 150 * 1024 * 1024)
+				if(!options.Chunked && fs.Length >= 150 * 1024 * 1024)
 				{
 					Output("File is larger than 150MB, using chunked uploading.", options);
 					options.Chunked = true;
 				}
 
-				if (options.Chunked)
+				if(options.Chunked)
 				{
 					var progress = ConfigureProgressHandler(options, fs.Length);
-
-					// TODO hartez 2017/05/28 20:29:05 Figure out cancellation	
-
 					uploaded = await client.UploadChunked(options.DropboxPath, filename, fs, cancellationToken, progress);
 				}
 				else
@@ -199,13 +195,15 @@ namespace PneumaticTube
 	        {
 				Console.WriteLine(ex.Message);
 	        }
-	        
+
 	        return exitCode;
         }
 
 	    private static ExitCode HandleGenericError(Exception ex)
 	    {
-			Console.WriteLine(ex.Message);
+			Console.WriteLine("An error occurred and your file was not uploaded.");
+			Console.WriteLine(ex);
+
 			return ExitCode.UnknownError;
 	    }
     }

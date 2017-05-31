@@ -11,11 +11,6 @@ namespace PneumaticTube
 	{
 		public static async Task<FileMetadata> Upload(this DropboxClient client, string folder, string fileName, Stream fs)
 		{
-			if (!folder.StartsWith("/"))
-			{
-				folder = $"/{folder}";
-			}
-
 			var fullDestinationPath = $"{folder}/{fileName}";
 
 			return await client.Files.UploadAsync(fullDestinationPath, WriteMode.Overwrite.Instance, body: fs);
@@ -25,41 +20,51 @@ namespace PneumaticTube
 			string folder, string fileName, Stream fs, CancellationToken cancellationToken, IProgress<long> progress)
 		{
 			const int chunkSize = 128 * 1024;
-			int numChunks = (int)Math.Ceiling((double)fs.Length / chunkSize);
+			int chunks = (int)Math.Ceiling((double)fs.Length / chunkSize);
 
 			byte[] buffer = new byte[chunkSize];
 			string sessionId = null;
 
 			FileMetadata resultMetadata = null;
+			var fullDestinationPath = $"{folder}/{fileName}";
 
-			for (var idx = 0; idx < numChunks; idx++)
+			for(var i = 0; i < chunks; i++)
 			{
-				//if(cancellationToken.)
+				if(cancellationToken.IsCancellationRequested)
+				{
+					throw new OperationCanceledException(cancellationToken);
+				}
 
 				var byteRead = fs.Read(buffer, 0, chunkSize);
 
-				using (MemoryStream memStream = new MemoryStream(buffer, 0, byteRead))
+				using(var memStream = new MemoryStream(buffer, 0, byteRead))
 				{
-					if (idx == 0)
+					if(i == 0)
 					{
 						var result = await client.Files.UploadSessionStartAsync(body: memStream);
 						sessionId = result.SessionId;
 					}
-
 					else
 					{
-						UploadSessionCursor cursor = new UploadSessionCursor(sessionId, (ulong)(chunkSize * idx));
+						UploadSessionCursor cursor = new UploadSessionCursor(sessionId, (ulong)(chunkSize * i));
 
-						if (idx == numChunks - 1)
+						if(i == chunks - 1)
 						{
-							resultMetadata = await client.Files.UploadSessionFinishAsync(cursor, new CommitInfo(folder + "/" + fileName), memStream);
+							resultMetadata = await client.Files.UploadSessionFinishAsync(cursor, new CommitInfo(fullDestinationPath), memStream);
+
+							if(!cancellationToken.IsCancellationRequested)
+							{
+								progress.Report(fs.Length);
+							}
 						}
 						else
 						{
 							await client.Files.UploadSessionAppendV2Async(cursor, body: memStream);
+							if(!cancellationToken.IsCancellationRequested)
+							{
+								progress.Report(i * chunkSize);
+							}
 						}
-
-						progress.Report(idx * chunkSize);
 					}
 				}
 			}
