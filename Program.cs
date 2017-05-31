@@ -77,7 +77,7 @@ namespace PneumaticTube
             }
             catch(OperationCanceledException)
             {
-                Output("Upload canceled", options);
+                Output("\nUpload canceled", options);
 
                 exitCode = ExitCode.Canceled;
             }
@@ -100,8 +100,6 @@ namespace PneumaticTube
                 Console.WriteLine("An error occurred and your file was not uploaded.");
                 Console.WriteLine(ex);
             }
-
-	        Console.ReadLine();
 
             return (int)exitCode;
         }
