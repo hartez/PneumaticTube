@@ -19,7 +19,7 @@ would upload `report.txt` to the `docs` folder in the Dropbox account.
 ### Options
 
 * `-f` <file> (required) The location of the file to upload
-* `-p` <path> (required) The destination path in Dropbox
+* `-p` <path> The destination path in Dropbox (if left blank, will default to your Dropbox root)
 * `-r` <reset> Force re-authorization with Dropbox
 * `-c` <chunked> Force chunked uploading
 * `-b` <bytes> Display progress in bytes instead of percentage when using chunked uploading

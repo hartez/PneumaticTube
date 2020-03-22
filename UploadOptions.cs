@@ -6,12 +6,12 @@ namespace PneumaticTube
 {
 	internal class UploadOptions
     {
-	    private string _dropboxPath;
+	    private string _dropboxPath = "";
 
 	    [Option('f', "file", Required = true, HelpText = "The location of the file to upload")]
         public string LocalPath { get; set; }
 
-	    [Option('p', "path", Required = true, HelpText = "The destination path in Dropbox")]
+	    [Option('p', "path", Required = false, HelpText = "The destination path in Dropbox")]
 	    public string DropboxPath
 	    {
 		    get { return _dropboxPath; }

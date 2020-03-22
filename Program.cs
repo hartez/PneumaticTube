@@ -46,7 +46,7 @@ namespace PneumaticTube
             if(attr.HasFlag(FileAttributes.Directory))
             {
                 // TODO see if we like what this looks like for directories
-                Output($"Uploading folder \"{source}\" to {options.DropboxPath}", options);
+                Output($"Uploading folder \"{source}\" to {(!string.IsNullOrEmpty(options.DropboxPath) ? options.DropboxPath : "Dropbox")}", options);
                 Output("Ctrl-C to cancel", options);
                 ShowCancelHelp = false;
 
@@ -122,7 +122,7 @@ namespace PneumaticTube
             CancellationToken cancellationToken)
         {
             Output($"Uploading {filename} to {options.DropboxPath}", options);
-            Console.Title = $"Uploading {filename} to {options.DropboxPath}";
+            Console.Title = $"Uploading {filename} to {(!string.IsNullOrEmpty(options.DropboxPath) ? options.DropboxPath : "Dropbox")}";
 
             if(ShowCancelHelp)
             {
