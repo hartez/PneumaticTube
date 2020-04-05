@@ -11,7 +11,7 @@ namespace PneumaticTube
 	{
 		public static async Task<FileMetadata> Upload(this DropboxClient client, string folder, string fileName, Stream fs)
 		{
-			var fullDestinationPath = $"{folder}/{fileName}";
+			var fullDestinationPath = Path.Combine(folder, fileName);
 
 			return await client.Files.UploadAsync(fullDestinationPath, WriteMode.Overwrite.Instance, body: fs);
 		}
@@ -26,7 +26,7 @@ namespace PneumaticTube
 			string sessionId = null;
 
 			FileMetadata resultMetadata = null;
-			var fullDestinationPath = $"{folder}/{fileName}";
+			var fullDestinationPath = Path.Combine(folder, fileName);
 
 			for(var i = 0; i < chunks; i++)
 			{
@@ -50,7 +50,7 @@ namespace PneumaticTube
 
 						if(i == chunks - 1)
 						{
-							resultMetadata = await client.Files.UploadSessionFinishAsync(cursor, new CommitInfo(fullDestinationPath), memStream);
+							resultMetadata = await client.Files.UploadSessionFinishAsync(cursor, new CommitInfo(fullDestinationPath, WriteMode.Overwrite.Instance), memStream);
 
 							if(!cancellationToken.IsCancellationRequested)
 							{
