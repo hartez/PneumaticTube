@@ -4,18 +4,21 @@
   <metadata>
     <id>pneumatictube.portable</id>
     <title>PneumaticTube (Portable)</title>
-    <version>1.3.0.0</version>
+    <version>1.4.0.0</version>
     <authors>E.Z. Hart</authors>
     <owners>E.Z. Hart</owners>
     <summary>Command line Dropbox uploader for Windows</summary>
     <description>This application provides command line uploading to Dropbox in Windows. For usage info, see the readme at https://github.com/hartez/PneumaticTube</description>
     <projectUrl>https://github.com/hartez/PneumaticTube</projectUrl>
     <tags>cli commandline dropbox</tags>
-	<copyright>Copyright 2017 CodeWise LLC and E.Z. Hart</copyright>
+	<copyright>Copyright 2020 CodeWise LLC and E.Z. Hart</copyright>
     <licenseUrl>https://github.com/hartez/PneumaticTube/blob/master/license.txt</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance> 
     <iconUrl>https://raw.githubusercontent.com/hartez/PneumaticTube/master/PneumaticTube.Setup/cmdline.ico</iconUrl>
 	<releaseNotes>
+	Version 1.4:
+	Fix for https://github.com/hartez/PneumaticTube/issues/27
+	Fix for https://github.com/hartez/PneumaticTube/issues/24
 	Version 1.3:
 	Dropbox API v2 support
 	Version 1.2:
