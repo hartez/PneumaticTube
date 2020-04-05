@@ -104,8 +104,6 @@ namespace PneumaticTube
             return (int)exitCode;
         }
 
-	 
-
 	    private static async Task Upload(IEnumerable<string> paths, UploadOptions options, DropboxClient client,
             CancellationToken cancellationToken)
         {
@@ -134,11 +132,17 @@ namespace PneumaticTube
             {
                 Metadata uploaded;
 
-				if(!options.Chunked && fs.Length >= 150 * 1024 * 1024)
+				if(!options.Chunked && fs.Length >= DropboxClientExtensions.ChunkedThreshold)
 				{
 					Output("File is larger than 150MB, using chunked uploading.", options);
 					options.Chunked = true;
 				}
+
+                if (options.Chunked && fs.Length <= DropboxClientExtensions.ChunkSize) 
+                {
+                    Output("File is less than 128kB, disabling chunked uploading.", options);
+                    options.Chunked = false;
+                }
 
 				if(options.Chunked)
 				{
