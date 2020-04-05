@@ -9,9 +9,22 @@ namespace PneumaticTube
 {
 	internal static class DropboxClientExtensions
 	{
+		private static string CombinePath(string folder, string fileName) 
+		{
+			// We can't use Path.Combine here because we'll end up with the Windows separator ("\") and 
+			// we need the forward slash ("/")
+
+			if (folder == "/") 
+			{
+				return $"/{fileName}";
+			}
+			
+			return $"{folder}/{fileName}";
+		}
+
 		public static async Task<FileMetadata> Upload(this DropboxClient client, string folder, string fileName, Stream fs)
 		{
-			var fullDestinationPath = Path.Combine(folder, fileName);
+			var fullDestinationPath = CombinePath(folder, fileName);
 
 			return await client.Files.UploadAsync(fullDestinationPath, WriteMode.Overwrite.Instance, body: fs);
 		}
@@ -26,9 +39,9 @@ namespace PneumaticTube
 			string sessionId = null;
 
 			FileMetadata resultMetadata = null;
-			var fullDestinationPath = Path.Combine(folder, fileName);
+			var fullDestinationPath = CombinePath(folder, fileName);
 
-			for(var i = 0; i < chunks; i++)
+			for (var i = 0; i < chunks; i++)
 			{
 				if(cancellationToken.IsCancellationRequested)
 				{

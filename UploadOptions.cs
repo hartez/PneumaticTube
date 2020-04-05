@@ -6,7 +6,8 @@ namespace PneumaticTube
 {
 	internal class UploadOptions
     {
-	    private string _dropboxPath = "";
+		// Default to the root path
+	    private string _dropboxPath = "/";
 
 	    [Option('f', "file", Required = true, HelpText = "The location of the file to upload")]
         public string LocalPath { get; set; }
