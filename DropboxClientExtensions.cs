@@ -9,8 +9,8 @@ namespace PneumaticTube
 {
 	internal static class DropboxClientExtensions
 	{
-		public const int ChunkSize = 128 * 1024;
-		public const int ChunkedThreshold = 150 * 1024 * 1024;
+		public const long ChunkSize = 10 * 1024 * 1024;
+		public const long ChunkedThreshold = 150 * 1024 * 1024;
 
 		private static string CombinePath(string folder, string fileName) 
 		{
@@ -25,15 +25,15 @@ namespace PneumaticTube
 			return $"{folder}/{fileName}";
 		}
 
-		public static async Task<FileMetadata> Upload(this DropboxClient client, string folder, string fileName, Stream fs)
+		public static async Task<FileMetadata> Upload(this DropboxClient client, string folder, string fileName, Stream fs, DateTime? modified = default)
 		{
 			var fullDestinationPath = CombinePath(folder, fileName);
 
-			return await client.Files.UploadAsync(fullDestinationPath, WriteMode.Overwrite.Instance, body: fs);
+			return await client.Files.UploadAsync(fullDestinationPath, WriteMode.Overwrite.Instance, body: fs, clientModified: modified);
 		}
 
 		public static async Task<FileMetadata> UploadChunked(this DropboxClient client, 
-			string folder, string fileName, Stream fs, CancellationToken cancellationToken, IProgress<long> progress)
+			string folder, string fileName, Stream fs, CancellationToken cancellationToken, IProgress<long> progress, DateTime? modified = default)
 		{
 			int chunks = (int)Math.Ceiling((double)fs.Length / ChunkSize);
 
@@ -50,7 +50,7 @@ namespace PneumaticTube
 					throw new OperationCanceledException(cancellationToken);
 				}
 
-				var bytesRead = fs.Read(buffer, 0, ChunkSize);
+				var bytesRead = fs.Read(buffer, 0, (int)ChunkSize);
 
 				using(var memStream = new MemoryStream(buffer, 0, bytesRead))
 				{
@@ -64,8 +64,14 @@ namespace PneumaticTube
 						UploadSessionCursor cursor = new UploadSessionCursor(sessionId, (ulong)(ChunkSize * i));
 
 						if(i == chunks - 1)
-						{
-							resultMetadata = await client.Files.UploadSessionFinishAsync(cursor, new CommitInfo(fullDestinationPath, WriteMode.Overwrite.Instance), memStream);
+                        {
+                            var commitInfo = new CommitInfo(
+                                path: fullDestinationPath, 
+                                mode: WriteMode.Overwrite.Instance,
+								clientModified: modified
+                                );
+
+							resultMetadata = await client.Files.UploadSessionFinishAsync(cursor, commitInfo, memStream);
 
 							if(!cancellationToken.IsCancellationRequested)
 							{
