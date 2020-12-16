@@ -147,11 +147,11 @@ namespace PneumaticTube
 				if(options.Chunked)
 				{
 					var progress = ConfigureProgressHandler(options, fs.Length);
-					uploaded = await client.UploadChunked(options.DropboxPath, filename, fs, cancellationToken, progress);
+					uploaded = await client.UploadChunked(options.DropboxPath, filename, fs, cancellationToken, progress, File.GetLastWriteTime(source));
 				}
 				else
                 {
-                    uploaded = await client.Upload(options.DropboxPath, filename, fs);
+                    uploaded = await client.Upload(options.DropboxPath, filename, fs, File.GetLastWriteTime(source));
                 }
 
                 Output("Whoosh...", options);
