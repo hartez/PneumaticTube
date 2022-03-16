@@ -15,22 +15,22 @@ namespace PneumaticTube
 
         private static int Main(string[] args)
         {
-	        var options = new UploadOptions();
+            return Parser.Default.ParseArguments<UploadOptions>(args)
+                .MapResult(
+                    options => RunAndReturnExitCode(options),
+                    errors => (int)ExitCode.BadArguments);
+        }
 
-            if(!Parser.Default.ParseArguments(args, options))
+        static int RunAndReturnExitCode(UploadOptions options)
+        {
+            if (options.Reset)
             {
-                Console.WriteLine(options.GetUsage());
-                return (int)ExitCode.BadArguments;
-            }
-
-			if (options.Reset)
-            {
-				DropboxClientFactory.ResetAuthentication();
+                DropboxClientFactory.ResetAuthentication();
             }
 
             var source = Path.GetFullPath(options.LocalPath);
 
-            if(!File.Exists(source) && !Directory.Exists(source))
+            if (!File.Exists(source) && !Directory.Exists(source))
             {
                 Console.WriteLine("Source does not exist.");
                 return (int)ExitCode.FileNotFound;
@@ -43,7 +43,7 @@ namespace PneumaticTube
 
             // Determine whether source is a file or directory
             var attr = File.GetAttributes(source);
-            if(attr.HasFlag(FileAttributes.Directory))
+            if (attr.HasFlag(FileAttributes.Directory))
             {
                 // TODO see if we like what this looks like for directories
                 Output($"Uploading folder \"{source}\" to {(!string.IsNullOrEmpty(options.DropboxPath) ? options.DropboxPath : "Dropbox")}", options);
@@ -55,8 +55,8 @@ namespace PneumaticTube
             }
             else
             {
-                files = new[] {source};
-            }       
+                files = new[] { source };
+            }
 
             var exitCode = ExitCode.UnknownError;
 
@@ -70,32 +70,32 @@ namespace PneumaticTube
 
             try
             {
-				var client = DropboxClientFactory.CreateDropboxClient().Result;
-				var task = Task.Run(() => Upload(files, options, client, cts.Token), cts.Token);
-				task.Wait(cts.Token);
+                var client = DropboxClientFactory.CreateDropboxClient().Result;
+                var task = Task.Run(() => Upload(files, options, client, cts.Token), cts.Token);
+                task.Wait(cts.Token);
                 exitCode = ExitCode.Success;
             }
-            catch(OperationCanceledException)
+            catch (OperationCanceledException)
             {
                 Output("\nUpload canceled", options);
 
                 exitCode = ExitCode.Canceled;
             }
-            catch(AggregateException ex)
+            catch (AggregateException ex)
             {
-                foreach(var exception in ex.Flatten().InnerExceptions)
+                foreach (var exception in ex.Flatten().InnerExceptions)
                 {
-                    if(exception is DropboxException)
+                    if (exception is DropboxException)
                     {
                         exitCode = HandleDropboxException(exception as DropboxException);
                     }
                     else
                     {
-	                    exitCode = HandleGenericError(ex);
+                        exitCode = HandleGenericError(ex);
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Console.WriteLine("An error occurred and your file was not uploaded.");
                 Console.WriteLine(ex);
@@ -104,7 +104,7 @@ namespace PneumaticTube
             return (int)exitCode;
         }
 
-	    private static async Task Upload(IEnumerable<string> paths, UploadOptions options, DropboxClient client,
+        private static async Task Upload(IEnumerable<string> paths, UploadOptions options, DropboxClient client,
             CancellationToken cancellationToken)
         {
             foreach(var path in paths)

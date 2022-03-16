@@ -25,8 +25,8 @@ namespace PneumaticTube
             {
                 using(var textStreamReader = new StreamReader(stream))
                 {
-                    var key = textStreamReader.ReadLine();
-                    var secret = textStreamReader.ReadLine();
+                    var key = textStreamReader.ReadLine().Trim();
+                    var secret = textStreamReader.ReadLine().Trim();
 
 	                string accessToken = await GetAccessToken(key, secret);
 

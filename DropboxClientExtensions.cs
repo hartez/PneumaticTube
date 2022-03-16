@@ -65,7 +65,7 @@ namespace PneumaticTube
 
 						if(i == chunks - 1)
 						{
-							resultMetadata = await client.Files.UploadSessionFinishAsync(cursor, new CommitInfo(fullDestinationPath, WriteMode.Overwrite.Instance), memStream);
+							resultMetadata = await client.Files.UploadSessionFinishAsync(cursor, new CommitInfo(fullDestinationPath, WriteMode.Overwrite.Instance), body: memStream);
 
 							if(!cancellationToken.IsCancellationRequested)
 							{
