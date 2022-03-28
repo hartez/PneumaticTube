@@ -28,18 +28,18 @@ namespace PneumaticTube
                     var key = textStreamReader.ReadLine().Trim();
                     var secret = textStreamReader.ReadLine().Trim();
 
-	                string accessToken = await GetAccessToken(key, secret);
+	                var result = await GetAccessTokens(key, secret);
 
-                    return new DropboxClient(accessToken, new DropboxClientConfig("PneumaticTube/2"));
+                    return new DropboxClient(result.UserToken, result.RefreshToken, key, secret, new DropboxClientConfig("PneumaticTube/2"));
                 }
             }
         }
 
-	    private static async Task<string> GetAccessToken(string key, string secret)
+	    private static async Task<TokenResult> GetAccessTokens(string key, string secret)
 	    {
-		    if (!string.IsNullOrEmpty(Settings.Default.USER_TOKEN))
+			if (!string.IsNullOrEmpty(Settings.Default.USER_TOKEN) && !string.IsNullOrEmpty(Settings.Default.REFRESH_TOKEN))
 		    {
-			    return Settings.Default.USER_TOKEN;
+			    return new TokenResult(Settings.Default.USER_TOKEN, Settings.Default.REFRESH_TOKEN);
 		    }
 
 		    Console.WriteLine(
@@ -48,7 +48,7 @@ namespace PneumaticTube
 		    var oauth2State = Guid.NewGuid().ToString("N");
 
 		    // Pop open the authorization page in the default browser
-		    var url = DropboxOAuth2Helper.GetAuthorizeUri(OAuthResponseType.Code, key, (Uri) null, oauth2State);
+		    var url = DropboxOAuth2Helper.GetAuthorizeUri(OAuthResponseType.Code, key, (Uri) null, oauth2State, tokenAccessType: TokenAccessType.Offline);
 		    Process.Start(url.ToString());
 
 		    // Wait for the user to enter the key
@@ -58,9 +58,22 @@ namespace PneumaticTube
 
 			// Save the token 
 			Settings.Default.USER_TOKEN = response.AccessToken;
-		    Settings.Default.Save();
+			Settings.Default.REFRESH_TOKEN = response.RefreshToken;
+			Settings.Default.Save();
 
-		    return response.AccessToken;
+		    return new TokenResult(response.AccessToken, response.RefreshToken);
 	    }
+
+		struct TokenResult 
+		{
+			public string UserToken;
+			public string RefreshToken;
+
+            public TokenResult(string userToken, string refreshToken)
+            {
+                UserToken = userToken;
+                RefreshToken = refreshToken;
+            }
+        }
     }
 }

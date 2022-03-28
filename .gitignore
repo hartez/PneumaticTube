@@ -68,3 +68,4 @@ packages/
 
 #Test files
 *.testsettings
+/.vs/PneumaticTube/project-colors.json

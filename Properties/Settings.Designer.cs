@@ -46,5 +46,17 @@ namespace PneumaticTube.Properties {
                 this["USER_SECRET"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string REFRESH_TOKEN {
+            get {
+                return ((string)(this["REFRESH_TOKEN"]));
+            }
+            set {
+                this["REFRESH_TOKEN"] = value;
+            }
+        }
     }
 }
