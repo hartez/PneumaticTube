@@ -9,8 +9,10 @@ namespace PneumaticTube
 {
 	internal static class DropboxClientExtensions
 	{
-		public const int ChunkSize = 128 * 1024;
 		public const int ChunkedThreshold = 150 * 1024 * 1024;
+		public const int MinimumChunkSizeInKilobytes = 128;
+		public const int MinimumChunkSize = MinimumChunkSizeInKilobytes * 1024;
+		public const int DefaultChunkSizeInKilobytes = 1024;
 
 		private static string CombinePath(string folder, string fileName) 
 		{
@@ -33,11 +35,11 @@ namespace PneumaticTube
 		}
 
 		public static async Task<FileMetadata> UploadChunked(this DropboxClient client, 
-			string folder, string fileName, Stream fs, CancellationToken cancellationToken, IProgress<long> progress)
+			string folder, string fileName, Stream fs, CancellationToken cancellationToken, IProgress<long> progress, int chunkSize)
 		{
-			int chunks = (int)Math.Ceiling((double)fs.Length / ChunkSize);
+			int chunks = (int)Math.Ceiling((double)fs.Length / chunkSize);
 
-			byte[] buffer = new byte[ChunkSize];
+			byte[] buffer = new byte[chunkSize];
 			string sessionId = null;
 
 			FileMetadata resultMetadata = null;
@@ -50,7 +52,7 @@ namespace PneumaticTube
 					throw new OperationCanceledException(cancellationToken);
 				}
 
-				var bytesRead = fs.Read(buffer, 0, ChunkSize);
+				var bytesRead = fs.Read(buffer, 0, chunkSize);
 
 				using(var memStream = new MemoryStream(buffer, 0, bytesRead))
 				{
@@ -61,7 +63,7 @@ namespace PneumaticTube
 					}
 					else
 					{
-						UploadSessionCursor cursor = new UploadSessionCursor(sessionId, (ulong)(ChunkSize * i));
+						UploadSessionCursor cursor = new UploadSessionCursor(sessionId, (ulong)(chunkSize * i));
 
 						if(i == chunks - 1)
 						{
@@ -77,7 +79,7 @@ namespace PneumaticTube
 							await client.Files.UploadSessionAppendV2Async(cursor, body: memStream);
 							if(!cancellationToken.IsCancellationRequested)
 							{
-								progress.Report(i * ChunkSize);
+								progress.Report(i * chunkSize);
 							}
 						}
 					}

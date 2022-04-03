@@ -138,16 +138,16 @@ namespace PneumaticTube
 					options.Chunked = true;
 				}
 
-                if (options.Chunked && fs.Length <= DropboxClientExtensions.ChunkSize) 
+                if (options.Chunked && fs.Length <= options.ChunkSize) 
                 {
-                    Output("File is less than 128kB, disabling chunked uploading.", options);
+                    Output("File is smaller than the specified chunk size, disabling chunked uploading.", options);
                     options.Chunked = false;
                 }
 
 				if(options.Chunked)
 				{
 					var progress = ConfigureProgressHandler(options, fs.Length);
-					uploaded = await client.UploadChunked(options.DropboxPath, filename, fs, cancellationToken, progress);
+					uploaded = await client.UploadChunked(options.DropboxPath, filename, fs, cancellationToken, progress, options.ChunkSize);
 				}
 				else
                 {

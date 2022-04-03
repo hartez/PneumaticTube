@@ -1,10 +1,9 @@
-using System.Reflection;
 using CommandLine;
-using CommandLine.Text;
+using System;
 
 namespace PneumaticTube
 {
-	internal class UploadOptions 
+    internal class UploadOptions 
     {
 		// Default to the root path
 	    private string _dropboxPath = "/";
@@ -42,5 +41,10 @@ namespace PneumaticTube
 
         [Option('n', "noprogress", Required = false, HelpText = "Suppress progress output when using chunked uploading")]
         public bool NoProgress { get; set; }
+
+		[Option('k', "chunksize", Required = false, HelpText = "Chunk size (in kilobytes) to use during chunked uploading. Defaults to 1024, minimum is 128.")]
+		public int ChunkSizeInKilobytes { get; set; } = DropboxClientExtensions.DefaultChunkSizeInKilobytes;
+
+		public int ChunkSize => Math.Max(ChunkSizeInKilobytes * 1024, DropboxClientExtensions.MinimumChunkSize);
 	}
 }
