@@ -1,5 +1,5 @@
 $packageName = 'PneumaticTube.portable' 
-$url = 'https://github.com/hartez/PneumaticTube/releases/download/v1.5/PneumaticTube.zip' 
+$url = 'https://github.com/hartez/PneumaticTube/releases/download/v1.6/PneumaticTube.zip' 
 
 $installDir = "$(Split-Path -parent $MyInvocation.MyCommand.Definition)"
-Install-ChocolateyZipPackage "$packageName" "$url" "$installDir" -md5 "69BB1474F88B87269AA86AAB78AA251C"
+Install-ChocolateyZipPackage "$packageName" "$url" "$installDir" -md5 "C7343189A9C384F76B7E238139FFBF81"
