@@ -14,7 +14,7 @@
 	<copyright>Copyright 2022 CodeWise LLC and E.Z. Hart</copyright>
     <licenseUrl>https://github.com/hartez/PneumaticTube/blob/master/license.txt</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance> 
-    <iconUrl>https://raw.githubusercontent.com/hartez/PneumaticTube/master/PneumaticTube.Setup/cmdline.ico</iconUrl>
+    <iconUrl>https://raw.githubusercontent.com/hartez/PneumaticTube/master/cmdline.ico</iconUrl>
 	<releaseNotes>
 	Version 1.6:
 	Add option to set chunk size for chunked uploading
