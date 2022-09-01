@@ -46,5 +46,8 @@ namespace PneumaticTube
 		public int ChunkSizeInKilobytes { get; set; } = DropboxClientExtensions.DefaultChunkSizeInKilobytes;
 
 		public int ChunkSize => Math.Max(ChunkSizeInKilobytes * 1024, DropboxClientExtensions.MinimumChunkSize);
+
+		[Option('t', "timeout", Required = false, HelpText = "HTTP Timeout (in seconds) for upload operations. Defaults to 100.")]
+		public int TimeoutSeconds { get; set; } = DropboxClientExtensions.DefaultTimeoutInSeconds;
 	}
 }

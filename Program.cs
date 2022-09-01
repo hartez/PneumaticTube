@@ -70,7 +70,7 @@ namespace PneumaticTube
 
             try
             {
-                var client = DropboxClientFactory.CreateDropboxClient().Result;
+                var client = DropboxClientFactory.CreateDropboxClient(options.TimeoutSeconds).Result;
                 var task = Task.Run(() => Upload(files, options, client, cts.Token), cts.Token);
                 task.Wait(cts.Token);
                 exitCode = ExitCode.Success;
@@ -85,13 +85,17 @@ namespace PneumaticTube
             {
                 foreach (var exception in ex.Flatten().InnerExceptions)
                 {
-                    if (exception is DropboxException)
+                    switch (exception)
                     {
-                        exitCode = HandleDropboxException(exception as DropboxException);
-                    }
-                    else
-                    {
-                        exitCode = HandleGenericError(ex);
+                        case DropboxException dex:
+                            exitCode = HandleDropboxException(dex);
+                            break;
+                        case TaskCanceledException tex:
+                            exitCode = HandleTimeoutError(tex);
+                            break;
+                        default:
+                            exitCode = HandleGenericError(ex);
+                            break;
                     }
                 }
             }
@@ -210,5 +214,13 @@ namespace PneumaticTube
 
 			return ExitCode.UnknownError;
 	    }
+
+        private static ExitCode HandleTimeoutError(TaskCanceledException ex) 
+        {
+            Console.WriteLine("An HTTP operation timed out and your file was not uploaded.");
+            Console.WriteLine(ex);
+
+            return ExitCode.Canceled;
+        }
     }
 }

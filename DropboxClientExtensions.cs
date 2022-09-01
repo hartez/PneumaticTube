@@ -13,6 +13,7 @@ namespace PneumaticTube
 		public const int MinimumChunkSizeInKilobytes = 128;
 		public const int MinimumChunkSize = MinimumChunkSizeInKilobytes * 1024;
 		public const int DefaultChunkSizeInKilobytes = 1024;
+		public const int DefaultTimeoutInSeconds = 100;
 
 		private static string CombinePath(string folder, string fileName) 
 		{

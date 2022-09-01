@@ -17,7 +17,7 @@ namespace PneumaticTube
 			Settings.Default.Save();
 		}
 
-		public static async Task<DropboxClient> CreateDropboxClient()
+		public static async Task<DropboxClient> CreateDropboxClient(int timeoutSeconds)
         {
             var assembly = Assembly.GetExecutingAssembly();
 
@@ -30,7 +30,15 @@ namespace PneumaticTube
 
 	                var result = await GetAccessTokens(key, secret);
 
-                    return new DropboxClient(result.UserToken, result.RefreshToken, key, secret, new DropboxClientConfig("PneumaticTube/2"));
+                    var config = new DropboxClientConfig("PneumaticTube/2")
+                    {
+                        HttpClient = new System.Net.Http.HttpClient
+                        {
+                            Timeout = TimeSpan.FromSeconds(timeoutSeconds)
+                        }
+                    };
+
+					return new DropboxClient(result.UserToken, result.RefreshToken, key, secret, config);
                 }
             }
         }
