@@ -4,7 +4,7 @@
   <metadata>
     <id>pneumatictube.portable</id>
     <title>PneumaticTube (Portable)</title>
-    <version>1.6.0.0</version>
+    <version>1.7.0.0</version>
     <authors>E.Z. Hart</authors>
     <owners>E.Z. Hart</owners>
     <summary>Command line Dropbox uploader for Windows</summary>
@@ -16,6 +16,8 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance> 
     <iconUrl>https://raw.githubusercontent.com/hartez/PneumaticTube/master/cmdline.ico</iconUrl>
 	<releaseNotes>
+	Version 1.7:
+	Add option to timeout for HTTP client
 	Version 1.6:
 	Add option to set chunk size for chunked uploading
 	Version 1.5:
