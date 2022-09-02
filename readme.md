@@ -25,6 +25,8 @@ would upload `report.txt` to the `docs` folder in the Dropbox account.
 * `-b` <bytes> Display progress in bytes instead of percentage when using chunked uploading
 * `-q` <quiet> Suppress all output (except errors)
 * `-n` <noprogress> Suppress progress reporting during chunked uploading
+* `-k` <chunksize> Chunk size (in kilobytes) to use during chunked uploading
+* `-t` <timeout> Timeout (in seconds) for HTTP connections
 
 ### Authorization
 
