@@ -16,7 +16,7 @@
 	<copyright>Copyright 2022 CodeWise LLC and E.Z. Hart</copyright>
     <licenseUrl>https://github.com/hartez/PneumaticTube/blob/master/license.txt</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance> 
-    <iconUrl>https://raw.githubusercontent.com/hartez/PneumaticTube/master/tube.png</iconUrl>
+    <iconUrl>https://rawcdn.githack.com/hartez/PneumaticTube/ac311f3f96f5910cbdf3291d64dcbe1cd026df73/tube.png</iconUrl>
 	<releaseNotes>
 	Version 1.7:
 	Add option to timeout for HTTP client
