@@ -12,7 +12,7 @@ namespace PneumaticTube.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "17.0.3.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "17.14.0.0")]
     internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
         
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
@@ -26,24 +26,12 @@ namespace PneumaticTube.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string USER_TOKEN {
+        public string ACCESS_TOKEN {
             get {
-                return ((string)(this["USER_TOKEN"]));
+                return ((string)(this["ACCESS_TOKEN"]));
             }
             set {
-                this["USER_TOKEN"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string USER_SECRET {
-            get {
-                return ((string)(this["USER_SECRET"]));
-            }
-            set {
-                this["USER_SECRET"] = value;
+                this["ACCESS_TOKEN"] = value;
             }
         }
         
@@ -56,6 +44,18 @@ namespace PneumaticTube.Properties {
             }
             set {
                 this["REFRESH_TOKEN"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string TOKEN_EXPIRATION {
+            get {
+                return ((string)(this["TOKEN_EXPIRATION"]));
+            }
+            set {
+                this["TOKEN_EXPIRATION"] = value;
             }
         }
     }

@@ -100,9 +100,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="apikeys.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="cmdline.ico">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

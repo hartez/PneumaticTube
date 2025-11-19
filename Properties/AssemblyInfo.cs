@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("CodeWise LLC")]
 [assembly: AssemblyProduct("PneumaticTube")]
-[assembly: AssemblyCopyright("Copyright © CodeWise LLC and E.Z. Hart 2022")]
+[assembly: AssemblyCopyright("Copyright © CodeWise LLC and E.Z. Hart 2025")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

@@ -19,6 +19,9 @@ namespace PneumaticTube
 			return ExitCode.AccessDenied;
 		}
 
+		// TODO use pattern matching for all these
+		// TODO update to at least C# 9 so you can use "is not"
+
 		public static ExitCode? HandleAccessException(this DropboxException ex)
 		{
 			var accessException = ex as AccessException;

@@ -192,6 +192,8 @@ namespace PneumaticTube
         {
             Console.WriteLine("An error occurred and your file was not uploaded.");
 
+            // TODO This might be a good pattern matching candidate
+
             var exitCode = ex.HandleAuthException() 
 				?? ex.HandleAccessException()
 				?? ex.HandleRateLimitException()
