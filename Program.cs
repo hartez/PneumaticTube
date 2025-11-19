@@ -4,6 +4,7 @@ using Dropbox.Api.Files;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -37,7 +38,7 @@ namespace PneumaticTube
 			// Fix up Dropbox path (fix Windows-style slashes)
 			options.DropboxPath = options.DropboxPath.Replace(@"\", "/");
 
-			string[] files;
+			FileToUpload[] files;
 
 			// Determine whether source is a file or directory
 			var attr = File.GetAttributes(source);
@@ -47,11 +48,23 @@ namespace PneumaticTube
 				Output("Ctrl-C to cancel", options);
 				ShowCancelHelp = false;
 
-				files = Directory.GetFiles(source);
+				if(options.Recursive)
+				{
+					EnumerationOptions enumerationOptions = new()
+					{
+						RecurseSubdirectories = true
+					};
+
+					files = [.. Directory.GetFiles(source, "*", enumerationOptions).Select(x => new FileToUpload(x, source))];
+				}
+				else
+				{
+					files = [.. Directory.GetFiles(source).Select(x => new FileToUpload(x))];
+				}
 			}
 			else
 			{
-				files = [source];
+				files = [new FileToUpload(source)];
 			}
 
 			var exitCode = ExitCode.UnknownError;
@@ -97,23 +110,21 @@ namespace PneumaticTube
 			return (int)exitCode;
 		}
 
-		private static async Task Upload(IEnumerable<string> paths, UploadOptions options, DropboxClient client,
+		private static async Task Upload(IEnumerable<FileToUpload> files, UploadOptions options, DropboxClient client,
 			CancellationToken cancellationToken)
 		{
-			foreach (var path in paths)
+			foreach (var file in files)
 			{
-				var source = Path.GetFullPath(path);
-				var filename = Path.GetFileName(source);
-
-				await Upload(source, filename, options, client, cancellationToken);
+				var destinationPath = string.IsNullOrWhiteSpace(file.Subfolder) ? options.DropboxPath : $"{options.DropboxPath}/{file.Subfolder}";
+				await Upload(file.FullPath, file.Name, destinationPath, options, client, cancellationToken);
 			}
 		}
 
-		private static async Task Upload(string source, string filename, UploadOptions options, DropboxClient client,
+		private static async Task Upload(string source, string filename, string destinationPath, UploadOptions options, DropboxClient client,
 			CancellationToken cancellationToken)
 		{
-			Output($"Uploading {filename} to {options.DropboxPath}", options);
-			Console.Title = $"Uploading {filename} to {(!string.IsNullOrEmpty(options.DropboxPath) ? options.DropboxPath : "Dropbox")}";
+			Output($"Uploading {filename} to {destinationPath}", options);
+			Console.Title = $"Uploading {filename} to {destinationPath}";
 
 			if (ShowCancelHelp)
 			{
@@ -139,13 +150,13 @@ namespace PneumaticTube
 			if (options.Chunked)
 			{
 				var progress = ConfigureProgressHandler(options, fs.Length);
-				uploaded = await client.UploadChunked(options.DropboxPath, filename, fs, progress, options.ChunkSize, cancellationToken);
+				uploaded = await client.UploadChunked(destinationPath, filename, fs, progress, options.ChunkSize, cancellationToken);
 			}
 			else
 			{
-				uploaded = await client.Upload(options.DropboxPath, filename, fs);
+				uploaded = await client.Upload(destinationPath, filename, fs);
 			}
-
+			
 			Output("Whoosh...", options);
 			Output($"Uploaded {uploaded.Name} to {uploaded.PathDisplay}; Revision {uploaded.AsFile.Rev}", options);
 		}
@@ -215,4 +226,16 @@ namespace PneumaticTube
 			return Task.FromResult((int)ExitCode.BadArguments);
 		}
 	}
+
+	internal class FileToUpload(string path)
+	{
+		public string FullPath { get; } = Path.GetFullPath(path);
+		public string Name { get; } = Path.GetFileName(path);
+		public string Subfolder { get; }
+
+		public FileToUpload(string path, string source) : this(path)
+		{
+			Subfolder = Path.GetDirectoryName(Path.GetRelativePath(source, path)).Replace("\\", "/");
+		}
+	} 
 }

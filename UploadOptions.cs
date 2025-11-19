@@ -8,7 +8,7 @@ namespace PneumaticTube
 		// Default to the root path
 	    private string _dropboxPath = "/";
 
-	    [Option('f', "file", Required = true, HelpText = "The path of the local file to upload. If this is a folder, the immediate contents of the folder (non-recursive) will be uploaded to the destination.")]
+	    [Option('f', "file", Required = true, HelpText = "The path of the local file to upload. If this is a folder, the contents of the folder will be uploaded to the destination.")]
         public string LocalPath { get; set; }
 
 	    [Option('p', "path", Required = false, HelpText = "The destination folder path in Dropbox")]
@@ -49,5 +49,8 @@ namespace PneumaticTube
 
 		[Option('t', "timeout", Required = false, HelpText = "HTTP Timeout (in seconds) for upload operations. Defaults to 100.")]
 		public int TimeoutSeconds { get; set; } = DropboxClientExtensions.DefaultTimeoutInSeconds;
+
+		[Option('s', "recursive", Required = false, HelpText = "When uploading a folder, recursively upload all subfolders")]
+		public bool Recursive{ get; set; } 
 	}
 }
