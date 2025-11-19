@@ -38,35 +38,6 @@ namespace PneumaticTube
 			// Fix up Dropbox path (fix Windows-style slashes)
 			options.DropboxPath = options.DropboxPath.Replace(@"\", "/");
 
-			FileToUpload[] files;
-
-			// Determine whether source is a file or directory
-			var attr = File.GetAttributes(source);
-			if (attr.HasFlag(FileAttributes.Directory))
-			{
-				Output($"Uploading folder \"{source}\" to {(!string.IsNullOrEmpty(options.DropboxPath) ? options.DropboxPath : "Dropbox")}", options);
-				Output("Ctrl-C to cancel", options);
-				ShowCancelHelp = false;
-
-				if(options.Recursive)
-				{
-					EnumerationOptions enumerationOptions = new()
-					{
-						RecurseSubdirectories = true
-					};
-
-					files = [.. Directory.GetFiles(source, "*", enumerationOptions).Select(x => new FileToUpload(x, source))];
-				}
-				else
-				{
-					files = [.. Directory.GetFiles(source).Select(x => new FileToUpload(x))];
-				}
-			}
-			else
-			{
-				files = [new FileToUpload(source)];
-			}
-
 			var exitCode = ExitCode.UnknownError;
 
 			var cts = new CancellationTokenSource();
@@ -79,6 +50,8 @@ namespace PneumaticTube
 
 			try
 			{
+				var files = GetFiles(source, options);
+
 				var client = await DropboxClientFactory.CreateDropboxClient(options.TimeoutSeconds);
 				await Upload(files, options, client, cts.Token);
 				exitCode = ExitCode.Success;
@@ -103,11 +76,38 @@ namespace PneumaticTube
 			}
 			catch (Exception ex)
 			{
-				Console.WriteLine("An error occurred and your file was not uploaded.");
+				Console.WriteLine("An error occurred and your upload was not completed.");
 				Console.WriteLine(ex);
 			}
 
 			return (int)exitCode;
+		}
+
+		static FileToUpload[] GetFiles(string source, UploadOptions options)
+		{
+			// Determine whether source is a file or directory
+			var attr = File.GetAttributes(source);
+			if (attr.HasFlag(FileAttributes.Directory))
+			{
+				Output($"Uploading folder \"{source}\" to {(!string.IsNullOrEmpty(options.DropboxPath) ? options.DropboxPath : "Dropbox")}", options);
+				Output("Ctrl-C to cancel", options);
+				ShowCancelHelp = false;
+
+				if(options.Recursive)
+				{
+					EnumerationOptions enumerationOptions = new()
+					{
+						RecurseSubdirectories = true
+					};
+
+					// Because we're recursing subdirectories, we may need to convert relative paths into relative paths in the Dropbox destination
+					return [.. Directory.GetFiles(source, "*", enumerationOptions).Select(x => new FileToUpload(x, source))];
+				}
+
+				return [.. Directory.GetFiles(source).Select(x => new FileToUpload(x))];
+			}
+
+			return [new FileToUpload(source)];
 		}
 
 		private static async Task Upload(IEnumerable<FileToUpload> files, UploadOptions options, DropboxClient client,
@@ -226,16 +226,4 @@ namespace PneumaticTube
 			return Task.FromResult((int)ExitCode.BadArguments);
 		}
 	}
-
-	internal class FileToUpload(string path)
-	{
-		public string FullPath { get; } = Path.GetFullPath(path);
-		public string Name { get; } = Path.GetFileName(path);
-		public string Subfolder { get; }
-
-		public FileToUpload(string path, string source) : this(path)
-		{
-			Subfolder = Path.GetDirectoryName(Path.GetRelativePath(source, path)).Replace("\\", "/");
-		}
-	} 
 }
