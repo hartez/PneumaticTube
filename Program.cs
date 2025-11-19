@@ -9,80 +9,77 @@ using System.Threading.Tasks;
 
 namespace PneumaticTube
 {
-    internal class Program
-    {
-        static bool ShowCancelHelp = true;
+	internal class Program
+	{
+		static bool ShowCancelHelp = true;
 
-        private static int Main(string[] args)
-        {
-            return Parser.Default.ParseArguments<UploadOptions>(args)
-                .MapResult(
-                    options => RunAndReturnExitCode(options),
-                    errors => (int)ExitCode.BadArguments);
-        }
+		private static async Task<int> Main(string[] args)
+		{
+			return await Parser.Default.ParseArguments<UploadOptions>(args)
+			   .MapResult(RunAndReturnExitCode, BadArgs);
+		}
 
-        static int RunAndReturnExitCode(UploadOptions options)
-        {
-            if (options.Reset)
-            {
-                DropboxClientFactory.ResetAuthentication();
-            }
+		static async Task<int> RunAndReturnExitCode(UploadOptions options)
+		{
+			if (options.Reset)
+			{
+				DropboxClientFactory.ResetAuthentication();
+			}
 
-            var source = Path.GetFullPath(options.LocalPath);
+			var source = Path.GetFullPath(options.LocalPath);
 
-            if (!File.Exists(source) && !Directory.Exists(source))
-            {
-                Console.WriteLine("Source does not exist.");
-                return (int)ExitCode.FileNotFound;
-            }
+			if (!File.Exists(source) && !Directory.Exists(source))
+			{
+				Console.WriteLine("Source does not exist.");
+				return (int)ExitCode.FileNotFound;
+			}
 
-            // Fix up Dropbox path (fix Windows-style slashes)
-            options.DropboxPath = options.DropboxPath.Replace(@"\", "/");
+			// Fix up Dropbox path (fix Windows-style slashes)
+			options.DropboxPath = options.DropboxPath.Replace(@"\", "/");
 
-            string[] files;
+			string[] files;
 
-            // Determine whether source is a file or directory
-            var attr = File.GetAttributes(source);
-            if (attr.HasFlag(FileAttributes.Directory))
-            {
-                Output($"Uploading folder \"{source}\" to {(!string.IsNullOrEmpty(options.DropboxPath) ? options.DropboxPath : "Dropbox")}", options);
-                Output("Ctrl-C to cancel", options);
-                ShowCancelHelp = false;
+			// Determine whether source is a file or directory
+			var attr = File.GetAttributes(source);
+			if (attr.HasFlag(FileAttributes.Directory))
+			{
+				Output($"Uploading folder \"{source}\" to {(!string.IsNullOrEmpty(options.DropboxPath) ? options.DropboxPath : "Dropbox")}", options);
+				Output("Ctrl-C to cancel", options);
+				ShowCancelHelp = false;
 
 				files = Directory.GetFiles(source);
-            }
-            else
-            {
-                files = [source];
-            }
+			}
+			else
+			{
+				files = [source];
+			}
 
-            var exitCode = ExitCode.UnknownError;
+			var exitCode = ExitCode.UnknownError;
 
-            var cts = new CancellationTokenSource();
+			var cts = new CancellationTokenSource();
 
-            Console.CancelKeyPress += (s, e) =>
-            {
-                e.Cancel = true;
-                cts.Cancel();
-            };
+			Console.CancelKeyPress += (s, e) =>
+			{
+				e.Cancel = true;
+				cts.Cancel();
+			};
 
-            try
-            {
-                var client = DropboxClientFactory.CreateDropboxClient(options.TimeoutSeconds).Result;
-                var task = Task.Run(() => Upload(files, options, client, cts.Token), cts.Token);
-                task.Wait(cts.Token);
-                exitCode = ExitCode.Success;
-            }
-            catch (OperationCanceledException)
-            {
-                Output("\nUpload canceled", options);
+			try
+			{
+				var client = await DropboxClientFactory.CreateDropboxClient(options.TimeoutSeconds);
+				await Upload(files, options, client, cts.Token);
+				exitCode = ExitCode.Success;
+			}
+			catch (OperationCanceledException)
+			{
+				Output("\nUpload canceled", options);
 
-                exitCode = ExitCode.Canceled;
-            }
-            catch (AggregateException ex)
-            {
-                foreach (var exception in ex.Flatten().InnerExceptions)
-                {
+				exitCode = ExitCode.Canceled;
+			}
+			catch (AggregateException ex)
+			{
+				foreach (var exception in ex.Flatten().InnerExceptions)
+				{
 					exitCode = exception switch
 					{
 						DropboxException dex => HandleDropboxException(dex),
@@ -90,39 +87,39 @@ namespace PneumaticTube
 						_ => HandleGenericError(ex),
 					};
 				}
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("An error occurred and your file was not uploaded.");
-                Console.WriteLine(ex);
-            }
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine("An error occurred and your file was not uploaded.");
+				Console.WriteLine(ex);
+			}
 
-            return (int)exitCode;
-        }
+			return (int)exitCode;
+		}
 
-        private static async Task Upload(IEnumerable<string> paths, UploadOptions options, DropboxClient client,
-            CancellationToken cancellationToken)
-        {
-            foreach(var path in paths)
-            {
-                var source = Path.GetFullPath(path);
-                var filename = Path.GetFileName(source);
+		private static async Task Upload(IEnumerable<string> paths, UploadOptions options, DropboxClient client,
+			CancellationToken cancellationToken)
+		{
+			foreach (var path in paths)
+			{
+				var source = Path.GetFullPath(path);
+				var filename = Path.GetFileName(source);
 
-                await Upload(source, filename, options, client, cancellationToken);
-            }
-        }
+				await Upload(source, filename, options, client, cancellationToken);
+			}
+		}
 
-        private static async Task Upload(string source, string filename, UploadOptions options, DropboxClient client,
-            CancellationToken cancellationToken)
-        {
-            Output($"Uploading {filename} to {options.DropboxPath}", options);
-            Console.Title = $"Uploading {filename} to {(!string.IsNullOrEmpty(options.DropboxPath) ? options.DropboxPath : "Dropbox")}";
+		private static async Task Upload(string source, string filename, UploadOptions options, DropboxClient client,
+			CancellationToken cancellationToken)
+		{
+			Output($"Uploading {filename} to {options.DropboxPath}", options);
+			Console.Title = $"Uploading {filename} to {(!string.IsNullOrEmpty(options.DropboxPath) ? options.DropboxPath : "Dropbox")}";
 
-            if(ShowCancelHelp)
-            {
-                Output("Ctrl-C to cancel", options);
-                ShowCancelHelp = false;
-            }
+			if (ShowCancelHelp)
+			{
+				Output("Ctrl-C to cancel", options);
+				ShowCancelHelp = false;
+			}
 
 			using var fs = new FileStream(source, FileMode.Open, FileAccess.Read);
 			Metadata uploaded;
@@ -154,63 +151,68 @@ namespace PneumaticTube
 		}
 
 		private static void Output(string message, UploadOptions options)
-        {
-            if(options.Quiet)
-            {
-                return;
-            }
+		{
+			if (options.Quiet)
+			{
+				return;
+			}
 
-            Console.WriteLine(message);
-        }
+			Console.WriteLine(message);
+		}
 
-        private static IProgress<long> ConfigureProgressHandler(UploadOptions options, long fileSize)
-        {
-            if(options.NoProgress || options.Quiet)
-            {
-                return new NoProgressDisplay(fileSize, options.Quiet);
-            }
+		private static IProgress<long> ConfigureProgressHandler(UploadOptions options, long fileSize)
+		{
+			if (options.NoProgress || options.Quiet)
+			{
+				return new NoProgressDisplay(fileSize, options.Quiet);
+			}
 
-            if(options.Bytes)
-            {
-                return new BytesProgressDisplay(fileSize);
-            }
+			if (options.Bytes)
+			{
+				return new BytesProgressDisplay(fileSize);
+			}
 
-            return new PercentProgressDisplay(fileSize);
-        }
+			return new PercentProgressDisplay(fileSize);
+		}
 
-        private static ExitCode HandleDropboxException(DropboxException ex)
-        {
-            Console.WriteLine("An error occurred and your file was not uploaded.");
+		private static ExitCode HandleDropboxException(DropboxException ex)
+		{
+			Console.WriteLine("An error occurred and your file was not uploaded.");
 
-            (ExitCode exitCode, string message) = ex switch
-            {
-                AuthException authException => (ExitCode.AccessDenied, $"An authentication error occurred: {authException}"),
-                AccessException accessException => (ExitCode.AccessDenied, $"An access error occurred: {accessException}"),
-                RateLimitException rateLimitException => (ExitCode.Canceled, $"A rate limit error occurred: {rateLimitException}"),
-                BadInputException badInputException => (ExitCode.BadArguments, $"An error occurred: {badInputException}"),
-                HttpException httpException => (ExitCode.BadArguments, $"An HTTP error occurred: {httpException}"),
-                _ => (ExitCode.UnknownError, ex.Message)
-            };
+			(ExitCode exitCode, string message) = ex switch
+			{
+				AuthException authException => (ExitCode.AccessDenied, $"An authentication error occurred: {authException}"),
+				AccessException accessException => (ExitCode.AccessDenied, $"An access error occurred: {accessException}"),
+				RateLimitException rateLimitException => (ExitCode.Canceled, $"A rate limit error occurred: {rateLimitException}"),
+				BadInputException badInputException => (ExitCode.BadArguments, $"An error occurred: {badInputException}"),
+				HttpException httpException => (ExitCode.BadArguments, $"An HTTP error occurred: {httpException}"),
+				_ => (ExitCode.UnknownError, ex.Message)
+			};
 
-            Console.WriteLine(message);
+			Console.WriteLine(message);
 
-	        return exitCode;
-        }
+			return exitCode;
+		}
 
-	    private static ExitCode HandleGenericError(Exception ex)
-	    {
+		private static ExitCode HandleGenericError(Exception ex)
+		{
 			Console.WriteLine("An error occurred and your file was not uploaded.");
 			Console.WriteLine(ex);
 
 			return ExitCode.UnknownError;
-	    }
+		}
 
-        private static ExitCode HandleTimeoutError(TaskCanceledException ex) 
-        {
-            Console.WriteLine("An HTTP operation timed out and your file was not uploaded.");
-            Console.WriteLine(ex);
+		private static ExitCode HandleTimeoutError(TaskCanceledException ex)
+		{
+			Console.WriteLine("An HTTP operation timed out and your file was not uploaded.");
+			Console.WriteLine(ex);
 
-            return ExitCode.Canceled;
-        }
-    }
+			return ExitCode.Canceled;
+		}
+
+		private static Task<int> BadArgs(IEnumerable<Error> errors)
+		{
+			return Task.FromResult((int)ExitCode.BadArguments);
+		}
+	}
 }
