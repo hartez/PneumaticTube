@@ -1,11 +1,11 @@
-﻿using System;
+﻿using CommandLine;
+using Dropbox.Api;
+using Dropbox.Api.Files;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using CommandLine;
-using Dropbox.Api;
-using Dropbox.Api.Files;
 
 namespace PneumaticTube
 {
@@ -45,17 +45,15 @@ namespace PneumaticTube
             var attr = File.GetAttributes(source);
             if (attr.HasFlag(FileAttributes.Directory))
             {
-                // TODO see if we like what this looks like for directories
                 Output($"Uploading folder \"{source}\" to {(!string.IsNullOrEmpty(options.DropboxPath) ? options.DropboxPath : "Dropbox")}", options);
                 Output("Ctrl-C to cancel", options);
                 ShowCancelHelp = false;
 
-                // TODO Figure out what, if anything, we want to do about subdirectories
-                files = Directory.GetFiles(source);
+				files = Directory.GetFiles(source);
             }
             else
             {
-                files = new[] { source };
+                files = [source];
             }
 
             var exitCode = ExitCode.UnknownError;
@@ -85,19 +83,13 @@ namespace PneumaticTube
             {
                 foreach (var exception in ex.Flatten().InnerExceptions)
                 {
-                    switch (exception)
-                    {
-                        case DropboxException dex:
-                            exitCode = HandleDropboxException(dex);
-                            break;
-                        case TaskCanceledException tex:
-                            exitCode = HandleTimeoutError(tex);
-                            break;
-                        default:
-                            exitCode = HandleGenericError(ex);
-                            break;
-                    }
-                }
+					exitCode = exception switch
+					{
+						DropboxException dex => HandleDropboxException(dex),
+						TaskCanceledException tex => HandleTimeoutError(tex),
+						_ => HandleGenericError(ex),
+					};
+				}
             }
             catch (Exception ex)
             {
@@ -132,36 +124,34 @@ namespace PneumaticTube
                 ShowCancelHelp = false;
             }
 
-            using(var fs = new FileStream(source, FileMode.Open, FileAccess.Read))
-            {
-                Metadata uploaded;
+			using var fs = new FileStream(source, FileMode.Open, FileAccess.Read);
+			Metadata uploaded;
 
-				if(!options.Chunked && fs.Length >= DropboxClientExtensions.ChunkedThreshold)
-				{
-					Output("File is larger than 150MB, using chunked uploading.", options);
-					options.Chunked = true;
-				}
+			if (!options.Chunked && fs.Length >= DropboxClientExtensions.ChunkedThreshold)
+			{
+				Output("File is larger than 150MB, using chunked uploading.", options);
+				options.Chunked = true;
+			}
 
-                if (options.Chunked && fs.Length <= options.ChunkSize) 
-                {
-                    Output("File is smaller than the specified chunk size, disabling chunked uploading.", options);
-                    options.Chunked = false;
-                }
+			if (options.Chunked && fs.Length <= options.ChunkSize)
+			{
+				Output("File is smaller than the specified chunk size, disabling chunked uploading.", options);
+				options.Chunked = false;
+			}
 
-				if(options.Chunked)
-				{
-					var progress = ConfigureProgressHandler(options, fs.Length);
-					uploaded = await client.UploadChunked(options.DropboxPath, filename, fs, cancellationToken, progress, options.ChunkSize);
-				}
-				else
-                {
-                    uploaded = await client.Upload(options.DropboxPath, filename, fs);
-                }
+			if (options.Chunked)
+			{
+				var progress = ConfigureProgressHandler(options, fs.Length);
+				uploaded = await client.UploadChunked(options.DropboxPath, filename, fs, progress, options.ChunkSize, cancellationToken);
+			}
+			else
+			{
+				uploaded = await client.Upload(options.DropboxPath, filename, fs);
+			}
 
-                Output("Whoosh...", options);
-                Output($"Uploaded {uploaded.Name} to {uploaded.PathDisplay}; Revision {uploaded.AsFile.Rev}", options);
-            }
-        }
+			Output("Whoosh...", options);
+			Output($"Uploaded {uploaded.Name} to {uploaded.PathDisplay}; Revision {uploaded.AsFile.Rev}", options);
+		}
 
 		private static void Output(string message, UploadOptions options)
         {
@@ -192,19 +182,17 @@ namespace PneumaticTube
         {
             Console.WriteLine("An error occurred and your file was not uploaded.");
 
-            // TODO This might be a good pattern matching candidate
+            (ExitCode exitCode, string message) = ex switch
+            {
+                AuthException authException => (ExitCode.AccessDenied, $"An authentication error occurred: {authException}"),
+                AccessException accessException => (ExitCode.AccessDenied, $"An access error occurred: {accessException}"),
+                RateLimitException rateLimitException => (ExitCode.Canceled, $"A rate limit error occurred: {rateLimitException}"),
+                BadInputException badInputException => (ExitCode.BadArguments, $"An error occurred: {badInputException}"),
+                HttpException httpException => (ExitCode.BadArguments, $"An HTTP error occurred: {httpException}"),
+                _ => (ExitCode.UnknownError, ex.Message)
+            };
 
-            var exitCode = ex.HandleAuthException() 
-				?? ex.HandleAccessException()
-				?? ex.HandleRateLimitException()
-				?? ex.HandleBadInputException()
-				?? ex.HandleHttpException()
-				?? ExitCode.UnknownError;
-
-	        if (exitCode == ExitCode.UnknownError)
-	        {
-				Console.WriteLine(ex.Message);
-	        }
+            Console.WriteLine(message);
 
 	        return exitCode;
         }

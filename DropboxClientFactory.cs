@@ -18,6 +18,31 @@ namespace PneumaticTube
 			Settings.Default.Save();
 		}
 
+		private static void PersistTokens(OAuth2Response response)
+		{
+			Settings.Default.ACCESS_TOKEN = response.AccessToken;
+			Settings.Default.REFRESH_TOKEN = response.RefreshToken;
+			Settings.Default.TOKEN_EXPIRATION = response.ExpiresAt.ToString() ?? string.Empty;
+			Settings.Default.Save();
+		}
+
+		private static bool LoadTokens(out TokenResult result)
+		{
+			var refreshToken = Settings.Default.REFRESH_TOKEN;
+
+			if(string.IsNullOrEmpty(refreshToken))
+			{
+				result = new TokenResult(string.Empty, string.Empty, null);
+				return false;
+			}
+
+			var accessToken = Settings.Default.ACCESS_TOKEN;
+			var hasExpiration = DateTime.TryParse(Settings.Default.TOKEN_EXPIRATION, out DateTime expiresAt);
+
+			result = new TokenResult(accessToken, refreshToken, hasExpiration ? expiresAt : null);
+			return true;
+		}
+
 		public static async Task<DropboxClient> CreateDropboxClient(int timeoutSeconds)
         {
 	        var result = await GetAccessTokens();
@@ -30,9 +55,6 @@ namespace PneumaticTube
                 }
             };
 
-			
-			// TODO Make sure that -r works even without any other commands (This might be challenging with the command line options stuff)
-			
 			if(result.ExpiresAt.HasValue)
 			{
 				return new DropboxClient(oauth2AccessToken: result.AccessToken, oauth2RefreshToken: result.RefreshToken, 
@@ -44,10 +66,10 @@ namespace PneumaticTube
 
 	    private static async Task<TokenResult> GetAccessTokens()
 	    {
-			if (!string.IsNullOrEmpty(Settings.Default.ACCESS_TOKEN) && !string.IsNullOrEmpty(Settings.Default.REFRESH_TOKEN))
-		    {
-			    return new TokenResult(Settings.Default.ACCESS_TOKEN, Settings.Default.REFRESH_TOKEN, null);
-		    }
+			if(LoadTokens(out TokenResult tokens))
+			{
+				return tokens;
+			}
 
 		    Console.WriteLine(
 			    "You'll need to authorize this account with PneumaticTube; a browser window will now open asking you to log into Dropbox and allow the app. When you've done that, you'll be given an access key. Enter the key here and hit Enter:");
@@ -56,7 +78,13 @@ namespace PneumaticTube
 
 		    // Pop open the authorization page in the default browser
 		    var url = oauthFlow.GetAuthorizeUri(OAuthResponseType.Code, _appkey, tokenAccessType: TokenAccessType.Offline);
-		    Process.Start(url.ToString());
+		    
+			using (Process p = new())
+            {               
+                p.StartInfo.FileName = url.ToString();
+                p.StartInfo.UseShellExecute = true;
+                p.Start();
+            }
 
 		    // Wait for the user to enter the code
 		    var code = Console.ReadLine();
@@ -64,32 +92,11 @@ namespace PneumaticTube
 			var response = await oauthFlow.ProcessCodeFlowAsync(code, _appkey);
 
 			// Save the token 
-			SaveTokens(response);
+			PersistTokens(response);
 
 		    return new TokenResult(response.AccessToken, response.RefreshToken, response.ExpiresAt);
 	    }
 
-		private static void SaveTokens(OAuth2Response response)
-		{
-			Settings.Default.ACCESS_TOKEN = response.AccessToken;
-			Settings.Default.REFRESH_TOKEN = response.RefreshToken;
-			Settings.Default.TOKEN_EXPIRATION = response.ExpiresAt.ToString() ?? string.Empty;
-			Settings.Default.Save();
-		}
-
-		// TODO Make this a record 
-		struct TokenResult 
-		{
-			public string AccessToken;
-			public string RefreshToken;
-			public DateTime? ExpiresAt;
-
-            public TokenResult(string accessToken, string refreshToken, DateTime? expiresAt)
-            {
-                AccessToken = accessToken;
-                RefreshToken = refreshToken;
-				ExpiresAt = expiresAt;
-            }
-        }
-    }
+		record TokenResult(string AccessToken, string RefreshToken, DateTime? ExpiresAt);
+	}
 }

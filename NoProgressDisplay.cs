@@ -2,22 +2,13 @@ using System;
 
 namespace PneumaticTube
 {
-    internal class NoProgressDisplay : IProgress<long>
+    internal class NoProgressDisplay(long fileSize, bool quiet) : IProgress<long>
     {
-        private readonly long _fileSize;
-        private readonly bool _quiet;
-
-        public NoProgressDisplay(long fileSize, bool quiet)
+		public void Report(long value)
         {
-            _fileSize = fileSize;
-            _quiet = quiet;
-        }
-
-        public void Report(long value)
-        {
-            if(value >= _fileSize)
+            if(value >= fileSize)
             {
-                if(!_quiet)
+                if(!quiet)
                 {
                     Console.Write("Finished\n");
                 }

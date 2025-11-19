@@ -36,7 +36,7 @@ namespace PneumaticTube
 		}
 
 		public static async Task<FileMetadata> UploadChunked(this DropboxClient client, 
-			string folder, string fileName, Stream fs, CancellationToken cancellationToken, IProgress<long> progress, int chunkSize)
+			string folder, string fileName, Stream fs, IProgress<long> progress, int chunkSize, CancellationToken cancellationToken)
 		{
 			int chunks = (int)Math.Ceiling((double)fs.Length / chunkSize);
 
@@ -48,40 +48,36 @@ namespace PneumaticTube
 
 			for (var i = 0; i < chunks; i++)
 			{
-				if(cancellationToken.IsCancellationRequested)
-				{
-					throw new OperationCanceledException(cancellationToken);
-				}
+				cancellationToken.ThrowIfCancellationRequested();
 
 				var bytesRead = fs.Read(buffer, 0, chunkSize);
 
-				using(var memStream = new MemoryStream(buffer, 0, bytesRead))
+				using var memStream = new MemoryStream(buffer, 0, bytesRead);
+				
+				if (i == 0)
 				{
-					if(i == 0)
+					var result = await client.Files.UploadSessionStartAsync(body: memStream);
+					sessionId = result.SessionId;
+				}
+				else
+				{
+					UploadSessionCursor cursor = new UploadSessionCursor(sessionId, (ulong)(chunkSize * i));
+
+					if (i == chunks - 1)
 					{
-						var result = await client.Files.UploadSessionStartAsync(body: memStream);
-						sessionId = result.SessionId;
+						resultMetadata = await client.Files.UploadSessionFinishAsync(cursor, new CommitInfo(fullDestinationPath, WriteMode.Overwrite.Instance), body: memStream);
+
+						if (!cancellationToken.IsCancellationRequested)
+						{
+							progress.Report(fs.Length);
+						}
 					}
 					else
 					{
-						UploadSessionCursor cursor = new UploadSessionCursor(sessionId, (ulong)(chunkSize * i));
-
-						if(i == chunks - 1)
+						await client.Files.UploadSessionAppendV2Async(cursor, body: memStream);
+						if (!cancellationToken.IsCancellationRequested)
 						{
-							resultMetadata = await client.Files.UploadSessionFinishAsync(cursor, new CommitInfo(fullDestinationPath, WriteMode.Overwrite.Instance), body: memStream);
-
-							if(!cancellationToken.IsCancellationRequested)
-							{
-								progress.Report(fs.Length);
-							}
-						}
-						else
-						{
-							await client.Files.UploadSessionAppendV2Async(cursor, body: memStream);
-							if(!cancellationToken.IsCancellationRequested)
-							{
-								progress.Report(i * chunkSize);
-							}
+							progress.Report(i * chunkSize);
 						}
 					}
 				}

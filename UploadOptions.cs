@@ -8,10 +8,10 @@ namespace PneumaticTube
 		// Default to the root path
 	    private string _dropboxPath = "/";
 
-	    [Option('f', "file", Required = true, HelpText = "The location of the file to upload")]
+	    [Option('f', "file", Required = true, HelpText = "The path of the local file to upload. If this is a folder, the immediate contents of the folder (non-recursive) will be uploaded to the destination.")]
         public string LocalPath { get; set; }
 
-	    [Option('p', "path", Required = false, HelpText = "The destination path in Dropbox")]
+	    [Option('p', "path", Required = false, HelpText = "The destination folder path in Dropbox")]
 	    public string DropboxPath
 	    {
 		    get { return _dropboxPath; }

@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "PneumaticTube": {
+        "commandName": "Project",
+        "commandLineArgs": "-f C:\\Users\\hartez\\testUpload -p /uploadTest" 
+    }
+  }
+}
