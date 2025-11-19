@@ -17,7 +17,7 @@ namespace PneumaticTube
 		    get { return _dropboxPath; }
 		    set
 		    {
-				if (!value.StartsWith("/"))
+				if (!value.StartsWith('/'))
 				{
 					value = $"/{value}";
 				}
