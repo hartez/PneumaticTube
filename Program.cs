@@ -117,6 +117,10 @@ namespace PneumaticTube
 			{
 				var destinationPath = string.IsNullOrWhiteSpace(file.Subfolder) ? options.DropboxPath : $"{options.DropboxPath}/{file.Subfolder}";
 				await Upload(file.FullPath, file.Name, destinationPath, options, client, cancellationToken);
+				if(cancellationToken.IsCancellationRequested)
+				{
+					break;
+				}
 			}
 		}
 
@@ -135,19 +139,21 @@ namespace PneumaticTube
 			using var fs = new FileStream(source, FileMode.Open, FileAccess.Read);
 			Metadata uploaded;
 
-			if (!options.Chunked && fs.Length >= DropboxClientExtensions.ChunkedThreshold)
+			var useChunked = options.Chunked;
+
+			if (!useChunked && fs.Length >= DropboxClientExtensions.ChunkedThreshold)
 			{
-				Output("File is larger than 150MB, using chunked uploading.", options);
-				options.Chunked = true;
+				Output("File is larger than 150MB, using chunked uploading for this file.", options);
+				useChunked = true;
 			}
 
-			if (options.Chunked && fs.Length <= options.ChunkSize)
+			if (useChunked && fs.Length <= options.ChunkSize)
 			{
-				Output("File is smaller than the specified chunk size, disabling chunked uploading.", options);
-				options.Chunked = false;
+				Output("File is smaller than the specified chunk size, disabling chunked uploading for this file.", options);
+				useChunked = false;
 			}
 
-			if (options.Chunked)
+			if (useChunked)
 			{
 				var progress = ConfigureProgressHandler(options, fs.Length);
 				uploaded = await client.UploadChunked(destinationPath, filename, fs, progress, options.ChunkSize, cancellationToken);
