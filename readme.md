@@ -4,8 +4,6 @@
 
 Versions prior to 1.8 will stop working as of January 1, 2026 due to changes Dropbox is making to its infrastructure. You'll need to update to 1.8 or higher to continue using PneumaticTube. Version 1.8 bumps the required .NET version to .NET 10. 
 
-If you're looking to update to 1.8 via [Chocolatey](https://chocolatey.org), the updated package is currently in moderation; I'll update this readme as soon as 1.8 is available.
-
 ## Command line Dropbox uploader for Windows
 
 ![Prague Pneumatic Post](http://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Hlavn%C3%AD-panel.jpg/320px-Hlavn%C3%AD-panel.jpg)
