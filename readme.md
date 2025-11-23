@@ -1,5 +1,9 @@
 # PneumaticTube
 
+## Important Update!
+
+Versions prior to 1.8 will stop working as of January 1, 2026 due to changes Dropbox is making to its infrastructure. You'll need to update to 1.8 or higher to continue using PneumaticTube. Version 1.8 bumps the required .NET version to .NET 10. 
+
 ## Command line Dropbox uploader for Windows
 
 ![Prague Pneumatic Post](http://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Hlavn%C3%AD-panel.jpg/320px-Hlavn%C3%AD-panel.jpg)
@@ -8,7 +12,7 @@
 
 `pneumatictube -f <file> -p <path>`
 
-Uploads the specified file to the specified path in Dropbox. The `-f` option can also point to a folder, in which case each file in the folder will be uploaded to Dropbox. Currently only the files in specified folder are uploaded - child folders are ignored.
+Uploads the specified file to the specified path in Dropbox. The `-f` option can also point to a folder, in which case each file in the folder will be uploaded to Dropbox. By default, only the files in the specified folder are uploaded; use the `-s` option to recursively upload the child folders.
 
 For example:
 
@@ -27,6 +31,7 @@ would upload `report.txt` to the `docs` folder in the Dropbox account.
 * `-n` <noprogress> Suppress progress reporting during chunked uploading
 * `-k` <chunksize> Chunk size (in kilobytes) to use during chunked uploading
 * `-t` <timeout> Timeout (in seconds) for HTTP connections
+* `-s` <recursive> If the location to upload is a folder, recursively upload child folders
 
 ### Authorization
 
