@@ -49,7 +49,13 @@ The `-k` option allows you to specify the chunk size (in kilobytes) to use durin
 
 ### Installation
 
-If you're not into building the project from source, you can download the [latest release](https://github.com/hartez/PneumaticTube/releases) as a `.zip`. Or, if you're a [chocolatey](https://chocolatey.org/) user, it's also available as a [package](https://chocolatey.org/packages/pneumatictube.portable). Just run `choco install pneumatictube.portable` and you should be good to go.
+If you're not into building the project from source, you can download the [latest release](https://github.com/hartez/PneumaticTube/releases) as a `.zip`. 
+
+If you're a [Chocolatey](https://chocolatey.org/) user, it's available as a [package](https://chocolatey.org/packages/pneumatictube.portable). Just run `choco install pneumatictube.portable` and you should be good to go. 
+
+If you're installing from Chocolatey or just unpacking the `.zip`, you'll need to install the .NET 10 Runtime yourself.
+
+If you prefer [WinGet](https://learn.microsoft.com/en-us/windows/package-manager/winget/), the package Id is "CodeWise.PneumaticTube". Just run `winget install CodeWise.PneumaticTube`. The WinGet package will also install the .NET 10 Runtime package. 
 
 ### Notes
 
