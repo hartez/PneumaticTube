@@ -6,7 +6,7 @@ Versions prior to 1.8 will stop working as of January 1, 2026 due to changes Dro
 
 ## Command line Dropbox uploader for Windows
 
-![Prague Pneumatic Post](http://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Hlavn%C3%AD-panel.jpg/320px-Hlavn%C3%AD-panel.jpg)
+![Prague Pneumatic Post](https://github.com/hartez/PneumaticTube/blob/main/panel.jpg)
 
 ### Usage
 
